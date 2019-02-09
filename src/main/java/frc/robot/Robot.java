@@ -17,6 +17,8 @@ public class Robot extends TimedRobot {
   public DifferentialDrive m_myRobot;
   public SpeedControllerGroup left_side;
   public SpeedControllerGroup right_side;
+  public double gety;
+  public double getx;
   public Joystick Xstick;
   public DigitalInput digi;
   public DigitalInput digi2;
@@ -63,6 +65,17 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
+    gety = Xstick.getY();
+    getx = Xstick.getX();
+
+    if (getx > -0.1 && getx < 0.1) {
+      getx = 0;
+    }
+
+    if (gety > -0.1 && gety < 0.1) {
+      gety = 0;
+    }
+
     left_trig = Xstick.getRawAxis(2);
     right_trig = Xstick.getRawAxis(3);
 
@@ -77,16 +90,23 @@ public class Robot extends TimedRobot {
     System.out.println(BValue);
     System.out.println(XValue);
 
-    left_trig = left_trig / 2;
-    right_trig = right_trig / 2;
+    left_trig = left_trig / 1.5;
+    /* left_trig = left_trig - 10; */
+    right_trig = right_trig / 1.5;
+    /* right_trig = right_trig - 10; */
 
-    System.out.println("Trigger 1" + left_trig);
-    System.out.println("Trigger 2" + right_trig);
+    System.out.println("Trigger 1 " + left_trig);
+    System.out.println("Trigger 2 " + right_trig);
 
-    if (Xstick.getY() != 0 || Xstick.getX() != 0) {
+    System.out.println("GETX " + getx);
+    System.out.println("GETY " + gety);
+
+    if (getx != 0 || gety != 0) {
       m_myRobot.arcadeDrive(Xstick.getY(), Xstick.getX());
-    } else if (left_trig != 0 || right_trig != 0) {
-      m_myRobot.arcadeDrive(left_trig, right_trig);
+    }
+    if (left_trig != 0 || right_trig != 0) {
+      System.out.println("MOVING ROBOT");
+      m_myRobot.tankDrive(left_trig, right_trig);
     } else {
       if (BValue == true) {
         if (firstdigi == true && secondigi == true) {
