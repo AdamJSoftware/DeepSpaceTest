@@ -110,7 +110,6 @@ public class Robot extends TimedRobot {
     } else {
       if (BValue == true) {
         if (firstdigi == true && secondigi == true) {
-          System.out.println("FOUND TAPE");
           m_myRobot.tankDrive(speed6, speed5);
         } else {
           System.out.println("Robot is moving");
