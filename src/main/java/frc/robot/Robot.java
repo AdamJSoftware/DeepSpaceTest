@@ -8,13 +8,11 @@ import edu.wpi.first.wpilibj.Joystick;
 import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Joystick.AxisType;
 import edu.wpi.first.wpilibj.buttons.Trigger;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-/**
- * This is a demo program showing the use of the RobotDrive class, specifically
- * it contains the code necessary to operate a robot with tank drive.
- */
+
 public class Robot extends TimedRobot {
   public DifferentialDrive m_myRobot;
   public SpeedControllerGroup left_side;
@@ -25,6 +23,8 @@ public class Robot extends TimedRobot {
   public boolean BValue;
   public WPI_VictorSPX m_1;
   public WPI_VictorSPX m_2;
+  public double left_trig;
+  public double right_trig;
   public boolean XValue;
   public double speed1;
   public double speed2;
@@ -35,6 +35,7 @@ public class Robot extends TimedRobot {
   public boolean firstdigi;
   public boolean secondigi;
   public TimeUnit TimeU;
+
   @Override
   public void robotInit() {
 
@@ -43,14 +44,12 @@ public class Robot extends TimedRobot {
 
     Xstick = new Joystick(0);
 
-
     left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
     right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
 
     m_1 = new WPI_VictorSPX(1);
     m_2 = new WPI_VictorSPX(3);
-    m_myRobot = new DifferentialDrive(left_side, right_side);
-
+    m_myRobot = new DifferentialDrive(m_1, m_2);
 
     speed1 = 0;
     speed2 = -0.45;
@@ -59,59 +58,57 @@ public class Robot extends TimedRobot {
     speed5 = 0.47;
     speed6 = 0.47;
 
-
   }
 
   @Override
   public void teleopPeriodic() {
 
-
+    left_trig = Xstick.getRawAxis(2);
+    right_trig = Xstick.getRawAxis(3);
 
     firstdigi = digi.get();
     secondigi = digi2.get();
 
-
-
     System.out.println("DIGI" + firstdigi);
- 
+
     BValue = Xstick.getRawButton(3);
     XValue = Xstick.getRawButton(2);
 
     System.out.println(BValue);
     System.out.println(XValue);
-    
-    if(Xstick.getY() != 0 || Xstick.getX() != 0){
-      m_myRobot.arcadeDrive(Xstick.getY(),Xstick.getX());
-    }
-      if(BValue == true){
-        if(firstdigi == true && secondigi == true){
+
+    left_trig = left_trig / 2;
+    right_trig = right_trig / 2;
+
+    System.out.println("Trigger 1" + left_trig);
+    System.out.println("Trigger 2" + right_trig);
+
+    if (Xstick.getY() != 0 || Xstick.getX() != 0) {
+      m_myRobot.arcadeDrive(Xstick.getY(), Xstick.getX());
+    } else if (left_trig != 0 || right_trig != 0) {
+      m_myRobot.arcadeDrive(left_trig, right_trig);
+    } else {
+      if (BValue == true) {
+        if (firstdigi == true && secondigi == true) {
           System.out.println("FOUND TAPE");
           m_myRobot.tankDrive(speed6, speed5);
-        }
-        else{
+        } else {
           System.out.println("Robot is moving");
-          m_myRobot.arcadeDrive(speed1,speed2); 
+          m_myRobot.arcadeDrive(speed1, speed2);
         }
 
-        
       }
-      else{
-
-      }
-      if(XValue == true){
-        if(firstdigi == true && secondigi == true){
+      if (XValue == true) {
+        if (firstdigi == true && secondigi == true) {
           System.out.println("FOUND TAPE");
           m_myRobot.tankDrive(speed6, speed5);
-        }
-        else{
+        } else {
           System.out.println("ROBOT is moving");
           m_myRobot.arcadeDrive(speed3, speed4);
         }
 
       }
-      else{
-
-      }
 
     }
-    }
+  }
+}
