@@ -22,6 +22,8 @@ public class Robot extends TimedRobot {
   public Joystick Xstick;
   public DigitalInput digi;
   public DigitalInput digi2;
+  public DigitalInput digi3;
+  public DigitalInput digi4;
   public boolean BValue;
   public WPI_VictorSPX m_1;
   public WPI_VictorSPX m_2;
@@ -37,28 +39,32 @@ public class Robot extends TimedRobot {
   public boolean firstdigi;
   public boolean secondigi;
   public TimeUnit TimeU;
+  public boolean thirddigi;
+  public boolean fourthdigi;
 
   @Override
   public void robotInit() {
 
-    digi = new DigitalInput(1);
-    digi2 = new DigitalInput(2);
+    digi = new DigitalInput(0); // 0
+    digi2 = new DigitalInput(2); // 2
+    digi3 = new DigitalInput(1); // 1
+    digi4 = new DigitalInput(3); // 3
 
     Xstick = new Joystick(0);
 
-    left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
-    right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
+    left_side = new SpeedControllerGroup(new WPI_VictorSPX(1));
+    right_side = new SpeedControllerGroup(new WPI_VictorSPX(3));
 
     m_1 = new WPI_VictorSPX(1);
     m_2 = new WPI_VictorSPX(3);
     m_myRobot = new DifferentialDrive(m_1, m_2);
 
-    speed1 = 0;
-    speed2 = -0.45;
-    speed3 = 0;
-    speed4 = 0.45;
-    speed5 = 0.47;
-    speed6 = 0.47;
+    speed1 = -0.3;
+    speed2 = -0.8;
+    speed3 = -0.3;
+    speed4 = 0.8;
+    speed5 = 0.6;
+    speed6 = 0.6;
 
   }
 
@@ -66,7 +72,9 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     gety = Xstick.getY();
+    // gety = gety * -1;
     getx = Xstick.getX();
+    // getx = getx * -1;
 
     if (getx > -0.1 && getx < 0.1) {
       getx = 0;
@@ -81,8 +89,13 @@ public class Robot extends TimedRobot {
 
     firstdigi = digi.get();
     secondigi = digi2.get();
+    thirddigi = digi3.get();
+    fourthdigi = digi4.get();
 
-    System.out.println("DIGI" + firstdigi);
+    System.out.println("DIGI 1 " + firstdigi);
+    System.out.println("DIGI 2 " + secondigi);
+    System.out.println("DIGI 3 " + thirddigi);
+    System.out.println("DIGI 4 " + fourthdigi);
 
     BValue = Xstick.getRawButton(3);
     XValue = Xstick.getRawButton(2);
@@ -91,38 +104,37 @@ public class Robot extends TimedRobot {
     System.out.println(XValue);
 
     left_trig = left_trig / 1.5;
-    /* left_trig = left_trig - 10; */
+    // left_trig = left_trig + 20;
     right_trig = right_trig / 1.5;
-    /* right_trig = right_trig - 10; */
+    // right_trig = right_trig + 20;
 
-    System.out.println("Trigger 1 " + left_trig);
-    System.out.println("Trigger 2 " + right_trig);
+    // System.out.println("Trigger 1 " + left_trig);
+    // System.out.println("Trigger 2 " + right_trig);
 
-    System.out.println("GETX " + getx);
-    System.out.println("GETY " + gety);
+    // System.out.println("GETX " + getx);
+    // System.out.println("GETY " + gety);
 
     if (getx != 0 || gety != 0) {
-      m_myRobot.arcadeDrive(Xstick.getY(), Xstick.getX());
-    }
-    if (left_trig != 0 || right_trig != 0) {
+      m_myRobot.arcadeDrive(Xstick.getY(), Xstick.getX() * -1);
+    } else if (left_trig != 0 || right_trig != 0) {
       System.out.println("MOVING ROBOT");
       m_myRobot.tankDrive(left_trig, right_trig);
     } else {
       if (BValue == true) {
-        if (firstdigi == true && secondigi == true) {
+        if (firstdigi && secondigi) {
           m_myRobot.tankDrive(speed6, speed5);
         } else {
           System.out.println("Robot is moving");
           m_myRobot.arcadeDrive(speed1, speed2);
         }
-
       }
+
       if (XValue == true) {
-        if (firstdigi == true && secondigi == true) {
-          System.out.println("FOUND TAPE");
+        if (firstdigi && secondigi) {
+          System.out.println("FOUND WHITE TAPE");
           m_myRobot.tankDrive(speed6, speed5);
         } else {
-          System.out.println("ROBOT is moving");
+          System.out.println("ROBOT IS MOVING");
           m_myRobot.arcadeDrive(speed3, speed4);
         }
 
