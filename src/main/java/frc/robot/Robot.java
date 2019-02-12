@@ -71,7 +71,7 @@ public class Robot extends TimedRobot {
     speed5 = 0.5;
     speed6 = 0.5;
     speed7 = 0.5;
-    // Assign a speed value for the sensor routine
+    // Assign a speed value for the sensor routine.
 
   }
 
