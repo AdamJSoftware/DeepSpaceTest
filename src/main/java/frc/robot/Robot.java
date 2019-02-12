@@ -50,12 +50,15 @@ public class Robot extends TimedRobot {
     digi = new DigitalInput(0); // 0
     digi2 = new DigitalInput(2); // 2
     digi3 = new DigitalInput(1); // 1
-    digi4 = new DigitalInput(3); // 3
+    digi4 = new DigitalInput(3); //
+    // Get boolean values from sensors
 
     Xstick = new Joystick(0);
+    // Declare Xbox controller as a joystick
 
     left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
     right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
+    // Control which motors control which sides of the robot in terms of movement
 
     m_1 = new WPI_VictorSPX(1);
     m_2 = new WPI_VictorSPX(3);
@@ -68,6 +71,7 @@ public class Robot extends TimedRobot {
     speed5 = 0.5;
     speed6 = 0.5;
     speed7 = 0.5;
+    // Assign a speed value for the sensor routine
 
   }
 
