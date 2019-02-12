@@ -26,6 +26,7 @@ public class Robot extends TimedRobot {
   public DigitalInput digi4;
   public boolean YValue;
   public boolean BValue;
+  public int POVValue;
   public WPI_VictorSPX m_1;
   public WPI_VictorSPX m_2;
   public double left_trig;
@@ -111,9 +112,13 @@ public class Robot extends TimedRobot {
     BValue = Xstick.getRawButton(3);
     XValue = Xstick.getRawButton(2);
     AValue = Xstick.getRawButton(1);
+    POVValue = Xstick.getPOV();
+    System.out.println("POVVALUE IS " + POVValue);
+    // Assigning the controller's buttons
 
     System.out.println(BValue);
     System.out.println(XValue);
+    // Output the values of the X and B buttons
 
     if (getx != 0 || gety != 0) {
       m_myRobot.arcadeDrive(Xstick.getY() * -1, Xstick.getX());
@@ -121,10 +126,23 @@ public class Robot extends TimedRobot {
       System.out.println("MOVING ROBOT");
       m_myRobot.tankDrive(left_trig, right_trig);
     } else if (AValue) {
-
-      System.out.println("firing solenoid");
+      System.out.println("Firing solenoid 1");
+      // Engage the first pneumatic
     } else if (YValue) {
-
+      System.out.println("Firing solenoid 2");
+      // Engage the second pneumatic
+    } else if (POVValue == 0) {
+      System.out.println("Firing solenoid 3");
+      // Engage the third pneumatic
+    } else if (POVValue == 90) {
+      System.out.println("Firing solenoid 4");
+      // Engage the fourth pneumatic
+    } else if (POVValue == 180) {
+      System.out.println("Firing solenoid 5");
+      // Engage the fifth pneumatic
+    } else if (POVValue == 270) {
+      System.out.println("Firing solenoid 6");
+      // Engage the sixth pneumatic
     } else {
       if (BValue == true) {
         if (firstdigi && secondigi) {
@@ -142,7 +160,6 @@ public class Robot extends TimedRobot {
 
       if (XValue == true) {
         if (firstdigi && secondigi) {
-          System.out.println("FOUND WHITE TAPE");
           m_myRobot.tankDrive(speed6, speed5);
         } else {
           if (firstdigi || secondigi) {
