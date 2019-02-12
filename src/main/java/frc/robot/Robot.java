@@ -24,6 +24,7 @@ public class Robot extends TimedRobot {
   public DigitalInput digi2;
   public DigitalInput digi3;
   public DigitalInput digi4;
+  public boolean YValue;
   public boolean BValue;
   public WPI_VictorSPX m_1;
   public WPI_VictorSPX m_2;
@@ -101,11 +102,12 @@ public class Robot extends TimedRobot {
     fourthdigi = digi4.get();
     // Get a boolean value from the sensors
 
-    System.out.println("DIGI 1 " + firstdigi);
-    System.out.println("DIGI 2 " + secondigi);
-    System.out.println("DIGI 3 " + thirddigi);
-    System.out.println("DIGI 4 " + fourthdigi);
+    // System.out.println("DIGI 1 " + firstdigi);
+    // System.out.println("DIGI 2 " + secondigi);
+    // System.out.println("DIGI 3 " + thirddigi);
+    // System.out.println("DIGI 4 " + fourthdigi);
 
+    YValue = Xstick.getRawButton(4);
     BValue = Xstick.getRawButton(3);
     XValue = Xstick.getRawButton(2);
     AValue = Xstick.getRawButton(1);
@@ -113,23 +115,13 @@ public class Robot extends TimedRobot {
     System.out.println(BValue);
     System.out.println(XValue);
 
-    left_trig = left_trig / 1.5;
-    // left_trig = left_trig + 20;
-    right_trig = right_trig / 1.5;
-    // right_trig = right_trig + 20;
-
-    // System.out.println("Trigger 1 " + left_trig);
-    // System.out.println("Trigger 2 " + right_trig);
-
-    // System.out.println("GETX " + getx);
-    // System.out.println("GETY " + gety);
-
     if (getx != 0 || gety != 0) {
       m_myRobot.arcadeDrive(Xstick.getY() * -1, Xstick.getX());
     } else if (left_trig != 0 || right_trig != 0) {
       System.out.println("MOVING ROBOT");
       m_myRobot.tankDrive(left_trig, right_trig);
     } else if (AValue) {
+
       System.out.println("firing solenoid");
     } else {
       if (BValue == true) {
