@@ -30,12 +30,14 @@ public class Robot extends TimedRobot {
   public double left_trig;
   public double right_trig;
   public boolean XValue;
+  public boolean AValue;
   public double speed1;
   public double speed2;
   public double speed3;
   public double speed4;
   public double speed5;
   public double speed6;
+  public double speed7;
   public boolean firstdigi;
   public boolean secondigi;
   public TimeUnit TimeU;
@@ -52,19 +54,20 @@ public class Robot extends TimedRobot {
 
     Xstick = new Joystick(0);
 
-    left_side = new SpeedControllerGroup(new WPI_VictorSPX(1));
-    right_side = new SpeedControllerGroup(new WPI_VictorSPX(3));
+    left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
+    right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
 
     m_1 = new WPI_VictorSPX(1);
     m_2 = new WPI_VictorSPX(3);
-    m_myRobot = new DifferentialDrive(m_1, m_2);
+    m_myRobot = new DifferentialDrive(left_side, right_side);
 
-    speed1 = -0.3;
-    speed2 = -0.8;
-    speed3 = -0.3;
-    speed4 = 0.8;
-    speed5 = 0.6;
-    speed6 = 0.6;
+    speed1 = 0;
+    speed2 = -0.46;
+    speed3 = 0;
+    speed4 = 0.46;
+    speed5 = 0.5;
+    speed6 = 0.5;
+    speed7 = 0.5;
 
   }
 
@@ -99,6 +102,7 @@ public class Robot extends TimedRobot {
 
     BValue = Xstick.getRawButton(3);
     XValue = Xstick.getRawButton(2);
+    AValue = Xstick.getRawButton(1);
 
     System.out.println(BValue);
     System.out.println(XValue);
@@ -115,17 +119,24 @@ public class Robot extends TimedRobot {
     // System.out.println("GETY " + gety);
 
     if (getx != 0 || gety != 0) {
-      m_myRobot.arcadeDrive(Xstick.getY(), Xstick.getX() * -1);
+      m_myRobot.arcadeDrive(Xstick.getY() * -1, Xstick.getX());
     } else if (left_trig != 0 || right_trig != 0) {
       System.out.println("MOVING ROBOT");
       m_myRobot.tankDrive(left_trig, right_trig);
+    } else if (AValue) {
+      System.out.println("firing solenoid");
     } else {
       if (BValue == true) {
         if (firstdigi && secondigi) {
           m_myRobot.tankDrive(speed6, speed5);
         } else {
-          System.out.println("Robot is moving");
-          m_myRobot.arcadeDrive(speed1, speed2);
+          if (firstdigi || secondigi) {
+            m_myRobot.arcadeDrive(speed7, speed2);
+          } else {
+            System.out.println("Robot is moving");
+            m_myRobot.arcadeDrive(speed1, speed2);
+          }
+
         }
       }
 
@@ -134,8 +145,13 @@ public class Robot extends TimedRobot {
           System.out.println("FOUND WHITE TAPE");
           m_myRobot.tankDrive(speed6, speed5);
         } else {
-          System.out.println("ROBOT IS MOVING");
-          m_myRobot.arcadeDrive(speed3, speed4);
+          if (firstdigi || secondigi) {
+            m_myRobot.arcadeDrive(speed7, speed4);
+          } else {
+            System.out.println("ROBOT IS MOVING");
+            m_myRobot.arcadeDrive(speed3, speed4);
+          }
+
         }
 
       }
