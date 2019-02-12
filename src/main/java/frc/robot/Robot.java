@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
 
@@ -12,6 +13,7 @@ import edu.wpi.first.wpilibj.Joystick.AxisType;
 import edu.wpi.first.wpilibj.buttons.Trigger;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.Compressor;
 
 public class Robot extends TimedRobot {
   public DifferentialDrive m_myRobot;
@@ -30,6 +32,7 @@ public class Robot extends TimedRobot {
   public WPI_VictorSPX m_2;
   public double left_trig;
   public double right_trig;
+  public boolean pressureSwitch;
   public boolean XValue;
   public boolean AValue;
   public double speed1;
@@ -44,9 +47,15 @@ public class Robot extends TimedRobot {
   public TimeUnit TimeU;
   public boolean thirddigi;
   public boolean fourthdigi;
+  public Compressor c;
+  public boolean enabled;
 
   @Override
   public void robotInit() {
+
+    Compressor c = new Compressor(0);
+
+    c.setClosedLoopControl(true);
 
     digi = new DigitalInput(0); // 0
     digi2 = new DigitalInput(2); // 2
@@ -78,6 +87,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+
+    pressureSwitch = c.getPressureSwitchValue();
+
+    System.out.println("Pressure switch value " + pressureSwitch);
 
     gety = Xstick.getY();
     // gety = gety * -1;
@@ -124,6 +137,11 @@ public class Robot extends TimedRobot {
 
       System.out.println("firing solenoid");
     } else if (YValue) {
+      System.out.println("Starting compressor");
+      if (pressureSwitch){
+        c.enabled();
+      }
+      System.out.println("Finished compressing");'/;'
 
     } else {
       if (BValue == true) {
