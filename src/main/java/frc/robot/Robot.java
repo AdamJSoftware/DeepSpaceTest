@@ -52,7 +52,7 @@ public class Robot extends TimedRobot {
     digi2 = new DigitalInput(2); // 2
     digi3 = new DigitalInput(1); // 1
     digi4 = new DigitalInput(3); //
-    // Get boolean values from sensors
+    // Define the sensors
 
     Xstick = new Joystick(0);
     // Declare Xbox controller as a joystick
@@ -94,11 +94,13 @@ public class Robot extends TimedRobot {
 
     left_trig = Xstick.getRawAxis(2);
     right_trig = Xstick.getRawAxis(3);
+    // Define the left and right triggers
 
     firstdigi = digi.get();
     secondigi = digi2.get();
     thirddigi = digi3.get();
     fourthdigi = digi4.get();
+    // Get a boolean value from the sensors
 
     // System.out.println("DIGI 1 " + firstdigi);
     // System.out.println("DIGI 2 " + secondigi);
