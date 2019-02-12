@@ -121,6 +121,8 @@ public class Robot extends TimedRobot {
     } else if (AValue) {
 
       System.out.println("firing solenoid");
+    } else if (YValue) {
+
     } else {
       if (BValue == true) {
         if (firstdigi && secondigi) {
