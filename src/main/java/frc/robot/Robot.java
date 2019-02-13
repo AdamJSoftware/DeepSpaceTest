@@ -142,7 +142,6 @@ public class Robot extends TimedRobot {
       System.out.println("Firing solenoid 1");
       // Engage the first pneumatic
     } else if (YValue) {
-<<<<<<< HEAD
       System.out.println("Firing solenoid 2");
       // Engage the second pneumatic
     } else if (POVValue == 0) {
@@ -157,14 +156,6 @@ public class Robot extends TimedRobot {
     } else if (POVValue == 270) {
       System.out.println("Firing solenoid 6");
       // Engage the sixth pneumatic
-=======
-      System.out.println("Starting compressor");
-      if (pressureSwitch){
-        c.enabled();
-      }
-      System.out.println("Finished compressing");'/;'
-
->>>>>>> 720102a47a32e78d7ca9ebed66faceba2aeefa47
     } else {
       if (BValue == true) {
         if (firstdigi && secondigi) {
