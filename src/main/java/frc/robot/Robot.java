@@ -62,6 +62,7 @@ public class Robot extends TimedRobot {
   public Compressor c;
   public boolean enabled;
   public DoubleSolenoid solenoid;
+  public double ScanValue;
 
   @Override
   public void robotInit() {
@@ -159,6 +160,9 @@ public class Robot extends TimedRobot {
     OuterRValue = Xstick.getRawButton(6);
     // Assigning the standing joystick's buttons
 
+    ScanValue = Xstick.getRawAxis(2);
+    System.out.println(ScanValue);
+
     System.out.println(BValue);
     System.out.println(XValue);
     // Output the values of the X and B buttons
@@ -200,6 +204,7 @@ public class Robot extends TimedRobot {
       // // Engage the sixth pneumatic
 
       // Above code only to be activated if stand-up joystick is no longer used
+
     } else {
       if (BValue == true) {
         if (firstdigi && secondigi) {
@@ -233,5 +238,18 @@ public class Robot extends TimedRobot {
       }
 
     }
+
+    /*
+     * if ( == ) { if (firstdigi && secondigi) { m_myRobot.tankDrive(speed6,
+     * speed5); // Scan routine left } else { if (firstdigi || secondigi) {
+     * m_myRobot.arcadeDrive(speed7, speed4); } else {
+     * System.out.println("Robot is moving"); m_myRobot.arcadeDrive(speed3, speed4);
+     * }
+     * 
+     * }
+     * 
+     * }
+     */
+
   }
 }
