@@ -169,6 +169,13 @@ public class Robot extends TimedRobot {
       System.out.println("MOVING ROBOT");
       m_myRobot.tankDrive(left_trig, right_trig);
     } else if (AValue) {
+		pressureSwitch = c.getPressureSwitchValue();
+		if (pressureSwitch){
+			c.enabled();
+		}
+		else{
+		System.out.println("Finisehd compressing"}
+		}
       System.out.println("Firing solenoid 1");
       // Engage the first pneumatic
     } else if (YValue) {
