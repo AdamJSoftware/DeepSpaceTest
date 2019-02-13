@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Solenoid;
 
 import java.sql.Time;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +15,9 @@ import edu.wpi.first.wpilibj.buttons.Trigger;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class Robot extends TimedRobot {
   public DifferentialDrive m_myRobot;
@@ -21,6 +25,7 @@ public class Robot extends TimedRobot {
   public SpeedControllerGroup right_side;
   public double gety;
   public double getx;
+  public Joystick Lstick;
   public Joystick Xstick;
   public DigitalInput digi;
   public DigitalInput digi2;
@@ -28,6 +33,12 @@ public class Robot extends TimedRobot {
   public DigitalInput digi4;
   public boolean YValue;
   public boolean BValue;
+  public boolean TriggerValue;
+  public boolean ThumbValue;
+  public boolean InnerLValue;
+  public boolean OuterLValue;
+  public boolean InnerRValue;
+  public boolean OuterRValue;
   public int POVValue;
   public WPI_VictorSPX m_1;
   public WPI_VictorSPX m_2;
@@ -50,6 +61,7 @@ public class Robot extends TimedRobot {
   public boolean fourthdigi;
   public Compressor c;
   public boolean enabled;
+  public DoubleSolenoid solenoid;
 
   @Override
   public void robotInit() {
@@ -58,14 +70,15 @@ public class Robot extends TimedRobot {
 
     c.setClosedLoopControl(true);
 
-    digi = new DigitalInput(0); // 0
-    digi2 = new DigitalInput(2); // 2
-    digi3 = new DigitalInput(1); // 1
+    digi = new DigitalInput(0); //
+    digi2 = new DigitalInput(2); //
+    digi3 = new DigitalInput(1); //
     digi4 = new DigitalInput(3); //
     // Define the sensors
 
-    Xstick = new Joystick(0);
-    // Declare Xbox controller as a joystick
+    Lstick = new Joystick(0);
+    Xstick = new Joystick(1);
+    // Declares controllers as a joystick
 
     left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
     right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
@@ -89,13 +102,22 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
+    solenoid = new DoubleSolenoid(0, 1);
+
+    if (solenoid.get().equals(Value.kForward)) {
+      solenoid.set(Value.kReverse);
+    } else {
+      solenoid.set(Value.kForward);
+    }
+    // Bad test program for the solenoids
+
     pressureSwitch = c.getPressureSwitchValue();
 
     System.out.println("Pressure switch value " + pressureSwitch);
 
-    gety = Xstick.getY();
+    gety = Lstick.getY();
     // gety = gety * -1;
-    getx = Xstick.getX();
+    getx = Lstick.getX();
     // getx = getx * -1;
 
     if (getx > -0.1 && getx < 0.1) {
@@ -106,8 +128,8 @@ public class Robot extends TimedRobot {
       gety = 0;
     }
 
-    left_trig = Xstick.getRawAxis(2);
-    right_trig = Xstick.getRawAxis(3);
+    left_trig = Lstick.getRawAxis(2);
+    right_trig = Lstick.getRawAxis(3);
     // Define the left and right triggers
 
     firstdigi = digi.get();
@@ -121,20 +143,28 @@ public class Robot extends TimedRobot {
     // System.out.println("DIGI 3 " + thirddigi);
     // System.out.println("DIGI 4 " + fourthdigi);
 
-    YValue = Xstick.getRawButton(4);
-    BValue = Xstick.getRawButton(3);
-    XValue = Xstick.getRawButton(2);
-    AValue = Xstick.getRawButton(1);
-    POVValue = Xstick.getPOV();
+    YValue = Lstick.getRawButton(4);
+    BValue = Lstick.getRawButton(3);
+    XValue = Lstick.getRawButton(2);
+    AValue = Lstick.getRawButton(1);
+    POVValue = Lstick.getPOV();
     System.out.println("POVVALUE IS " + POVValue);
-    // Assigning the controller's buttons
+    // Assigning the console controller's buttons
+
+    TriggerValue = Xstick.getRawButton(1);
+    ThumbValue = Xstick.getRawButton(2);
+    InnerLValue = Xstick.getRawButton(3);
+    OuterLValue = Xstick.getRawButton(5);
+    InnerRValue = Xstick.getRawButton(4);
+    OuterRValue = Xstick.getRawButton(6);
+    // Assigning the standing joystick's buttons
 
     System.out.println(BValue);
     System.out.println(XValue);
     // Output the values of the X and B buttons
 
     if (getx != 0 || gety != 0) {
-      m_myRobot.arcadeDrive(Xstick.getY() * -1, Xstick.getX());
+      m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
     } else if (left_trig != 0 || right_trig != 0) {
       System.out.println("MOVING ROBOT");
       m_myRobot.tankDrive(left_trig, right_trig);
@@ -144,22 +174,37 @@ public class Robot extends TimedRobot {
     } else if (YValue) {
       System.out.println("Firing solenoid 2");
       // Engage the second pneumatic
-    } else if (POVValue == 0) {
+    } else if (InnerLValue) {
       System.out.println("Firing solenoid 3");
       // Engage the third pneumatic
-    } else if (POVValue == 90) {
+    } else if (OuterLValue) {
       System.out.println("Firing solenoid 4");
       // Engage the fourth pneumatic
-    } else if (POVValue == 180) {
+    } else if (InnerRValue) {
       System.out.println("Firing solenoid 5");
       // Engage the fifth pneumatic
-    } else if (POVValue == 270) {
+    } else if (OuterRValue) {
       System.out.println("Firing solenoid 6");
       // Engage the sixth pneumatic
+      // } else if (POVValue == 0) {
+      // System.out.println("Firing solenoid 3");
+      // // Engage the third pneumatic
+      // } else if (POVValue == 90) {
+      // System.out.println("Firing solenoid 4");
+      // // Engage the fourth pneumatic
+      // } else if (POVValue == 180) {
+      // System.out.println("Firing solenoid 5");
+      // // Engage the fifth pneumatic
+      // } else if (POVValue == 270) {
+      // System.out.println("Firing solenoid 6");
+      // // Engage the sixth pneumatic
+
+      // Above code only to be activated if stand-up joystick is no longer used
     } else {
       if (BValue == true) {
         if (firstdigi && secondigi) {
           m_myRobot.tankDrive(speed6, speed5);
+          // Scan routine right
         } else {
           if (firstdigi || secondigi) {
             m_myRobot.arcadeDrive(speed7, speed2);
@@ -174,11 +219,12 @@ public class Robot extends TimedRobot {
       if (XValue == true) {
         if (firstdigi && secondigi) {
           m_myRobot.tankDrive(speed6, speed5);
+          // Scan routine left
         } else {
           if (firstdigi || secondigi) {
             m_myRobot.arcadeDrive(speed7, speed4);
           } else {
-            System.out.println("ROBOT IS MOVING");
+            System.out.println("Robot is moving");
             m_myRobot.arcadeDrive(speed3, speed4);
           }
 
