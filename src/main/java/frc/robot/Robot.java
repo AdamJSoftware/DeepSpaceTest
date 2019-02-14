@@ -74,6 +74,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
 
     c = new Compressor(0);
+    // Creates compressor object
 
     digi = new DigitalInput(0);
     digi2 = new DigitalInput(2);
@@ -91,6 +92,7 @@ public class Robot extends TimedRobot {
     // Control which motors control which sides of the robot in terms of movement
 
     m_myRobot = new DifferentialDrive(left_side, right_side);
+    // Assigns both sides to differential drive method
 
     speed1 = 0;
     speed2 = -0.46;
