@@ -27,6 +27,7 @@ public class Robot extends TimedRobot {
   public double getx;
   public Joystick Lstick;
   public Joystick Xstick;
+  public Joystick Nstick;
   public DigitalInput digi;
   public DigitalInput digi2;
   public DigitalInput digi3;
@@ -40,6 +41,7 @@ public class Robot extends TimedRobot {
   public boolean InnerRValue;
   public boolean OuterRValue;
   public int POVValue;
+  public boolean NinB;
   public WPI_VictorSPX m_1;
   public WPI_VictorSPX m_2;
   public double left_trig;
@@ -61,24 +63,27 @@ public class Robot extends TimedRobot {
   public boolean fourthdigi;
   public Compressor c;
   public boolean enabled;
-  public DoubleSolenoid solenoid;
+  public DoubleSolenoid soli;
+  public DoubleSolenoid poli;
+  public DoubleSolenoid holi;
+  public DoubleSolenoid roli;
   public double ScanValue;
+  public double SliderValue;
 
   @Override
   public void robotInit() {
 
-    Compressor c = new Compressor(0);
+    c = new Compressor(0);
 
-    c.setClosedLoopControl(true);
-
-    digi = new DigitalInput(0); //
-    digi2 = new DigitalInput(2); //
-    digi3 = new DigitalInput(1); //
-    digi4 = new DigitalInput(3); //
+    digi = new DigitalInput(0);
+    digi2 = new DigitalInput(2);
+    digi3 = new DigitalInput(1);
+    digi4 = new DigitalInput(3);
     // Define the sensors
 
     Lstick = new Joystick(0);
     Xstick = new Joystick(1);
+    Nstick = new Joystick(2);
     // Declares controllers as a joystick
 
     left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
@@ -96,25 +101,19 @@ public class Robot extends TimedRobot {
     speed5 = 0.5;
     speed6 = 0.5;
     speed7 = 0.5;
-    // Assign a speed value for the sensor routine.
+    // Do we need these defined speeds?
+    c.setClosedLoopControl(false);
+
+    soli = new DoubleSolenoid(0, 1);
+    poli = new DoubleSolenoid(2, 3);
+    holi = new DoubleSolenoid(4, 5);
+    roli = new DoubleSolenoid(6, 7);
+    // Define the double solenoids named: soli, poli, holi, roli
 
   }
 
   @Override
   public void teleopPeriodic() {
-
-    solenoid = new DoubleSolenoid(0, 1);
-
-    if (solenoid.get().equals(Value.kForward)) {
-      solenoid.set(Value.kReverse);
-    } else {
-      solenoid.set(Value.kForward);
-    }
-    // Bad test program for the solenoids
-
-    pressureSwitch = c.getPressureSwitchValue();
-
-    System.out.println("Pressure switch value " + pressureSwitch);
 
     gety = Lstick.getY();
     // gety = gety * -1;
@@ -128,6 +127,7 @@ public class Robot extends TimedRobot {
     if (gety > -0.1 && gety < 0.1) {
       gety = 0;
     }
+    // Accounts for axis inaccuracy
 
     left_trig = Lstick.getRawAxis(2);
     right_trig = Lstick.getRawAxis(3);
@@ -139,18 +139,12 @@ public class Robot extends TimedRobot {
     fourthdigi = digi4.get();
     // Get a boolean value from the sensors
 
-    // System.out.println("DIGI 1 " + firstdigi);
-    // System.out.println("DIGI 2 " + secondigi);
-    // System.out.println("DIGI 3 " + thirddigi);
-    // System.out.println("DIGI 4 " + fourthdigi);
-
     YValue = Lstick.getRawButton(4);
     BValue = Lstick.getRawButton(3);
     XValue = Lstick.getRawButton(2);
     AValue = Lstick.getRawButton(1);
     POVValue = Lstick.getPOV();
-    System.out.println("POVVALUE IS " + POVValue);
-    // Assigning the console controller's buttons
+    // Assigning the Logitech console controller's buttons
 
     TriggerValue = Xstick.getRawButton(1);
     ThumbValue = Xstick.getRawButton(2);
@@ -158,105 +152,142 @@ public class Robot extends TimedRobot {
     OuterLValue = Xstick.getRawButton(5);
     InnerRValue = Xstick.getRawButton(4);
     OuterRValue = Xstick.getRawButton(6);
+    SliderValue = Xstick.getRawAxis(3);
     // Assigning the standing joystick's buttons
 
-    ScanValue = Xstick.getRawAxis(2);
-    System.out.println(ScanValue);
+    NinB = Nstick.getRawButton(1);
+    // If the Nintendo Switch controller is used
 
-    System.out.println(BValue);
-    System.out.println(XValue);
-    // Output the values of the X and B buttons
+    pressureSwitch = c.getPressureSwitchValue();
+    // Define the pressure switch
+
+    ScanValue = Xstick.getRawAxis(2);
+    // Define the scan value as standing joystick's Z axis
+
+    if (AValue) {
+      if (!pressureSwitch) {
+        System.out.println("RUNNING COMPRESSOR");
+        c.enabled();
+        c.setClosedLoopControl(true);
+      } else {
+        System.out.println("COMPRESSOR FULL");
+        c.setClosedLoopControl(false);
+      }
+    } else {
+      c.setClosedLoopControl(false);
+    }
 
     if (getx != 0 || gety != 0) {
       m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
     } else if (left_trig != 0 || right_trig != 0) {
       System.out.println("MOVING ROBOT");
       m_myRobot.tankDrive(left_trig, right_trig);
-    } else if (AValue) {
-		pressureSwitch = c.getPressureSwitchValue();
-		if (pressureSwitch){
-			c.enabled();
-		}
-		else{
-		System.out.println("Finisehd compressing"}
-		}
-      System.out.println("Firing solenoid 1");
-      // Engage the first pneumatic
-    } else if (YValue) {
-      System.out.println("Firing solenoid 2");
-      // Engage the second pneumatic
-    } else if (InnerLValue) {
-      System.out.println("Firing solenoid 3");
-      // Engage the third pneumatic
-    } else if (OuterLValue) {
-      System.out.println("Firing solenoid 4");
-      // Engage the fourth pneumatic
-    } else if (InnerRValue) {
-      System.out.println("Firing solenoid 5");
-      // Engage the fifth pneumatic
-    } else if (OuterRValue) {
-      System.out.println("Firing solenoid 6");
-      // Engage the sixth pneumatic
-      // } else if (POVValue == 0) {
-      // System.out.println("Firing solenoid 3");
-      // // Engage the third pneumatic
-      // } else if (POVValue == 90) {
-      // System.out.println("Firing solenoid 4");
-      // // Engage the fourth pneumatic
-      // } else if (POVValue == 180) {
-      // System.out.println("Firing solenoid 5");
-      // // Engage the fifth pneumatic
-      // } else if (POVValue == 270) {
-      // System.out.println("Firing solenoid 6");
-      // // Engage the sixth pneumatic
-
-      // Above code only to be activated if stand-up joystick is no longer used
-
     } else {
-      if (BValue == true) {
-        if (firstdigi && secondigi) {
-          m_myRobot.tankDrive(speed6, speed5);
-          // Scan routine right
-        } else {
-          if (firstdigi || secondigi) {
-            m_myRobot.arcadeDrive(speed7, speed2);
-          } else {
-            System.out.println("Robot is moving");
-            m_myRobot.arcadeDrive(speed1, speed2);
-          }
-
-        }
-      }
-
-      if (XValue == true) {
-        if (firstdigi && secondigi) {
-          m_myRobot.tankDrive(speed6, speed5);
-          // Scan routine left
-        } else {
-          if (firstdigi || secondigi) {
-            m_myRobot.arcadeDrive(speed7, speed4);
-          } else {
-            System.out.println("Robot is moving");
-            m_myRobot.arcadeDrive(speed3, speed4);
-          }
-
-        }
-
-      }
 
     }
 
-    /*
-     * if ( == ) { if (firstdigi && secondigi) { m_myRobot.tankDrive(speed6,
-     * speed5); // Scan routine left } else { if (firstdigi || secondigi) {
-     * m_myRobot.arcadeDrive(speed7, speed4); } else {
-     * System.out.println("Robot is moving"); m_myRobot.arcadeDrive(speed3, speed4);
-     * }
-     * 
-     * }
-     * 
-     * }
-     */
+    if (SliderValue == -1) {
+      if (TriggerValue) {
+        System.out.println("Firing solenoid 1");
+        soli.set(Value.kForward);
+        // Engage the first pneumatic
+      } else {
+        soli.set(Value.kReverse);
+      }
+
+      if (ThumbValue) {
+        System.out.println("Firing solenoid 2");
+        poli.set(Value.kForward);
+        // Engage the second pneumatic
+      } else {
+        poli.set(Value.kReverse);
+      }
+
+      if (InnerLValue) {
+        System.out.println("Firing solenoid 3");
+        holi.set(Value.kForward);
+        // Engage the third pneumatic
+      } else {
+        holi.set(Value.kReverse);
+      }
+      // Engage the fifth pneumatic
+      if (OuterLValue) {
+        System.out.println("Firing solenoid 4");
+        roli.set(Value.kForward);
+        // Engage the fourth pneumatic
+      } else {
+        roli.set(Value.kReverse);
+      }
+
+      if (InnerRValue) {
+        System.out.println("Firing solenoid 5");
+        // Engage the fifth pneumatic
+      } else {
+
+      }
+
+      if (OuterRValue) {
+        System.out.println("Firing solenoid 6");
+      } else {
+      }
+    }
+
+    else {
+      soli.set(Value.kOff);
+      poli.set(Value.kOff);
+      holi.set(Value.kOff);
+      roli.set(Value.kOff);
+      // Turns off all solenoids
+    }
+
+    System.out.println(ScanValue);
+
+    if (ScanValue == 1) {
+      if (firstdigi && secondigi) {
+        m_myRobot.tankDrive(0, 0.5);
+      } else if (firstdigi || secondigi) {
+        m_myRobot.arcadeDrive(0, 0.3);
+      } else {
+        System.out.println("Robot is moving");
+        m_myRobot.arcadeDrive(0.5, 0);
+      }
+      // Scan routine right
+    } else if (ScanValue == -1) {
+      if (firstdigi && secondigi) {
+        m_myRobot.tankDrive(0, 0.5);
+      } else if (firstdigi || secondigi) {
+        m_myRobot.arcadeDrive(0, 0.3);
+      } else {
+        System.out.println("Robot is moving");
+        m_myRobot.arcadeDrive(-0.5, 0);
+      }
+      // Scan routine left
+    } else {
+
+    }
+
+    // Engage the sixth pneumatic
+    // } else if (POVValue == 0) {
+    // System.out.println("Firing solenoid 3");
+    // // Engage the third pneumatic
+    // } else if (POVValue == 90) {
+    // System.out.println("Firing solenoid 4");
+    // // Engage the fourth pneumatic
+    // } else if (POVValue == 180) {
+    // System.out.println("Firing solenoid 5");
+    // // Engage the fifth pneumatic
+    // } else if (POVValue == 270) {
+    // System.out.println("Firing solenoid 6");
+    // // Engage the sixth pneumatic
+
+    // Above code only to be activated if stand-up joystick is no longer used
+
+  }
+
+  public void autonomousInit() {
+  }
+
+  public void autonomousPeriodic() {
 
   }
 }
