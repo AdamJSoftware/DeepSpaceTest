@@ -81,17 +81,15 @@ public class Robot extends TimedRobot {
     digi4 = new DigitalInput(3);
     // Define the sensors
 
-    Lstick = new Joystick(0);
-    Xstick = new Joystick(1);
-    Nstick = new Joystick(2);
+    Lstick = new Joystick(0); // Logitech Joystick
+    Xstick = new Joystick(1); // Logitech Xtreme Joystick
+    Nstick = new Joystick(2); // Nintendo Joystick
     // Declares controllers as a joystick
 
     left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
     right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
     // Control which motors control which sides of the robot in terms of movement
 
-    m_1 = new WPI_VictorSPX(1);
-    m_2 = new WPI_VictorSPX(3);
     m_myRobot = new DifferentialDrive(left_side, right_side);
 
     speed1 = 0;
@@ -116,9 +114,7 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     gety = Lstick.getY();
-    // gety = gety * -1;
     getx = Lstick.getX();
-    // getx = getx * -1;
 
     if (getx > -0.1 && getx < 0.1) {
       getx = 0;
@@ -153,13 +149,13 @@ public class Robot extends TimedRobot {
     InnerRValue = Xstick.getRawButton(4);
     OuterRValue = Xstick.getRawButton(6);
     SliderValue = Xstick.getRawAxis(3);
-    // Assigning the standing joystick's buttons
+    // Assigning the Xtreme joystick's buttons
 
     NinB = Nstick.getRawButton(1);
     // If the Nintendo Switch controller is used
 
     pressureSwitch = c.getPressureSwitchValue();
-    // Define the pressure switch
+    // Define the pressure switch and gets it's value
 
     ScanValue = Xstick.getRawAxis(2);
     // Define the scan value as standing joystick's Z axis
@@ -176,6 +172,7 @@ public class Robot extends TimedRobot {
     } else {
       c.setClosedLoopControl(false);
     }
+    // If the A button is pressed. Run the compressor.
 
     if (getx != 0 || gety != 0) {
       m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
@@ -185,6 +182,7 @@ public class Robot extends TimedRobot {
     } else {
 
     }
+    // Basic robot movement with the axis as well as with the tiggers
 
     if (SliderValue == -1) {
       if (TriggerValue) {
