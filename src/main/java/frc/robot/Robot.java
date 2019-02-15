@@ -14,17 +14,19 @@ import edu.wpi.first.wpilibj.Joystick.AxisType;
 import edu.wpi.first.wpilibj.buttons.Trigger;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class Robot extends TimedRobot {
   public DifferentialDrive m_myRobot;
   public SpeedControllerGroup left_side;
   public SpeedControllerGroup right_side;
-  public double gety;
-  public double getx;
+  public SpeedControllerGroup BallIntake;
+  public WPI_VictorSPX FirstBallIntake;
+  public WPI_VictorSPX SecondBallIntake;
+  public WPI_VictorSPX BallLauncher;
+  public WPI_VictorSPX m_1;
+  public WPI_VictorSPX m_2;
   public Joystick Lstick;
   public Joystick Xstick;
   public Joystick Nstick;
@@ -32,23 +34,28 @@ public class Robot extends TimedRobot {
   public DigitalInput digi2;
   public DigitalInput digi3;
   public DigitalInput digi4;
+  public DigitalInput digi5;
+  public DigitalInput digi6;
   public boolean YValue;
   public boolean BValue;
+  public boolean LBValue;
   public boolean TriggerValue;
   public boolean ThumbValue;
   public boolean InnerLValue;
   public boolean OuterLValue;
   public boolean InnerRValue;
   public boolean OuterRValue;
-  public int POVValue;
-  public boolean NinB;
-  public WPI_VictorSPX m_1;
-  public WPI_VictorSPX m_2;
-  public double left_trig;
-  public double right_trig;
+  public boolean firstdigi;
+  public boolean secondigi;
+  public boolean thirddigi;
+  public boolean fourthdigi;
+  public boolean BallSwitch;
+  public boolean HatchSwitch;
+  public boolean enabled;
   public boolean pressureSwitch;
   public boolean XValue;
   public boolean AValue;
+  // public boolean NinB;
   public double speed1;
   public double speed2;
   public double speed3;
@@ -56,19 +63,20 @@ public class Robot extends TimedRobot {
   public double speed5;
   public double speed6;
   public double speed7;
-  public boolean firstdigi;
-  public boolean secondigi;
+  public double gety;
+  public double getx;
+  public double BallSpeed;
+  public double left_trig;
+  public double right_trig;
+  public double ScanValue;
+  public double SliderValue;
   public TimeUnit TimeU;
-  public boolean thirddigi;
-  public boolean fourthdigi;
   public Compressor c;
-  public boolean enabled;
   public DoubleSolenoid soli;
   public DoubleSolenoid poli;
   public DoubleSolenoid holi;
   public DoubleSolenoid roli;
-  public double ScanValue;
-  public double SliderValue;
+  // public int POVValue;
 
   @Override
   public void robotInit() {
@@ -79,12 +87,14 @@ public class Robot extends TimedRobot {
     digi2 = new DigitalInput(2);
     digi3 = new DigitalInput(1);
     digi4 = new DigitalInput(3);
+    digi5 = new DigitalInput(4);
+    digi6 = new DigitalInput(5);
     // Define the sensors
 
     Lstick = new Joystick(0);
     Xstick = new Joystick(1);
     Nstick = new Joystick(2);
-    // Declares controllers as a joystick
+    // Declares controllers as joysticks
 
     left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
     right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
@@ -94,6 +104,12 @@ public class Robot extends TimedRobot {
     m_2 = new WPI_VictorSPX(3);
     m_myRobot = new DifferentialDrive(left_side, right_side);
 
+    FirstBallIntake = new WPI_VictorSPX(5);
+    SecondBallIntake = new WPI_VictorSPX(6);
+    BallIntake = new SpeedControllerGroup(FirstBallIntake, SecondBallIntake);
+
+    BallLauncher = new WPI_VictorSPX(7);
+
     speed1 = 0;
     speed2 = -0.46;
     speed3 = 0;
@@ -101,6 +117,7 @@ public class Robot extends TimedRobot {
     speed5 = 0.5;
     speed6 = 0.5;
     speed7 = 0.5;
+    BallSpeed = 0;
     // Do we need these defined speeds?
     c.setClosedLoopControl(false);
 
@@ -137,14 +154,17 @@ public class Robot extends TimedRobot {
     secondigi = digi2.get();
     thirddigi = digi3.get();
     fourthdigi = digi4.get();
-    // Get a boolean value from the sensors
+    BallSwitch = digi5.get();
+    // HatchSwitch = digi6.get();
+    // Get a boolean value from the sensors and limit switches
 
+    LBValue = Lstick.getRawButton(5);
     YValue = Lstick.getRawButton(4);
     BValue = Lstick.getRawButton(3);
     XValue = Lstick.getRawButton(2);
     AValue = Lstick.getRawButton(1);
-    POVValue = Lstick.getPOV();
-    // Assigning the Logitech console controller's buttons
+    // POVValue = Lstick.getPOV();
+    // Assigning the handheld Logitech controller's buttons
 
     TriggerValue = Xstick.getRawButton(1);
     ThumbValue = Xstick.getRawButton(2);
@@ -155,7 +175,7 @@ public class Robot extends TimedRobot {
     SliderValue = Xstick.getRawAxis(3);
     // Assigning the standing joystick's buttons
 
-    NinB = Nstick.getRawButton(1);
+    // NinB = Nstick.getRawButton(1);
     // If the Nintendo Switch controller is used
 
     pressureSwitch = c.getPressureSwitchValue();
@@ -163,6 +183,44 @@ public class Robot extends TimedRobot {
 
     ScanValue = Xstick.getRawAxis(2);
     // Define the scan value as standing joystick's Z axis
+
+    if (BallSwitch) {
+      BallIntake.stopMotor();
+    } else if (!BallSwitch && LBValue) {
+      BallIntake.set(0.8);
+    } else if (!BallSwitch && !LBValue) {
+      BallIntake.set(0);
+    }
+
+    if (XValue) {
+      BallIntake.set(0.8);
+    } else {
+      BallIntake.set(0);
+    }
+
+    if (BValue) {
+      BallLauncher.set(1);
+    } else {
+      BallLauncher.set(0);
+    }
+
+    if (HatchSwitch) {
+      System.out.println("TOUCHING WALL");
+      m_myRobot.tankDrive(0, 0); // Stop robot movement
+      // poli.set(Value.kReverse)
+      // Fire/retract solenoid; ask Kurtis which one it is
+    } else {
+
+    }
+
+    if (getx != 0 || gety != 0) {
+      m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
+    } else if (left_trig != 0 || right_trig != 0) {
+      System.out.println("MOVING ROBOT");
+      m_myRobot.tankDrive(left_trig, right_trig);
+    } else {
+
+    }
 
     if (AValue) {
       if (!pressureSwitch) {
@@ -176,15 +234,7 @@ public class Robot extends TimedRobot {
     } else {
       c.setClosedLoopControl(false);
     }
-
-    if (getx != 0 || gety != 0) {
-      m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
-    } else if (left_trig != 0 || right_trig != 0) {
-      System.out.println("MOVING ROBOT");
-      m_myRobot.tankDrive(left_trig, right_trig);
-    } else {
-
-    }
+    // Run compressor
 
     if (SliderValue == -1) {
       if (TriggerValue) {
@@ -211,6 +261,7 @@ public class Robot extends TimedRobot {
         holi.set(Value.kReverse);
       }
       // Engage the fifth pneumatic
+
       if (OuterLValue) {
         System.out.println("Firing solenoid 4");
         roli.set(Value.kForward);
@@ -229,10 +280,9 @@ public class Robot extends TimedRobot {
       if (OuterRValue) {
         System.out.println("Firing solenoid 6");
       } else {
-      }
-    }
 
-    else {
+      }
+    } else {
       soli.set(Value.kOff);
       poli.set(Value.kOff);
       holi.set(Value.kOff);
@@ -240,7 +290,7 @@ public class Robot extends TimedRobot {
       // Turns off all solenoids
     }
 
-    System.out.println(ScanValue);
+    // System.out.println(ScanValue);
 
     if (ScanValue == 1) {
       if (firstdigi && secondigi) {
@@ -280,7 +330,8 @@ public class Robot extends TimedRobot {
     // System.out.println("Firing solenoid 6");
     // // Engage the sixth pneumatic
 
-    // Above code only to be activated if stand-up joystick is no longer used
+    // Above code only to be activated if stand-up joystick is no longer used for
+    // pneumatic control
 
   }
 
