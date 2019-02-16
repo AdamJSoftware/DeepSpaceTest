@@ -1,7 +1,6 @@
 package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
-
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
@@ -25,11 +24,9 @@ public class Robot extends TimedRobot {
   public WPI_VictorSPX FirstBallIntake;
   public WPI_VictorSPX SecondBallIntake;
   public WPI_VictorSPX BallLauncher;
-  public WPI_VictorSPX m_1;
-  public WPI_VictorSPX m_2;
   public Joystick Lstick;
   public Joystick Xstick;
-  public Joystick Nstick;
+  // Defines the joysticks: Lstick = Logitech; Xstick = standing/Xtreme
   public DigitalInput digi;
   public DigitalInput digi2;
   public DigitalInput digi3;
@@ -56,6 +53,7 @@ public class Robot extends TimedRobot {
   public boolean XValue;
   public boolean AValue;
   // public boolean NinB;
+  // If the Nintendo controller is used, activate this variable
   public double speed1;
   public double speed2;
   public double speed3;
@@ -77,11 +75,13 @@ public class Robot extends TimedRobot {
   public DoubleSolenoid holi;
   public DoubleSolenoid roli;
   // public int POVValue;
+  // If the standing controller is no longer used, activate this variable
 
   @Override
   public void robotInit() {
 
     c = new Compressor(0);
+    // Creates compressor object
 
     digi = new DigitalInput(0);
     digi2 = new DigitalInput(2);
@@ -89,20 +89,18 @@ public class Robot extends TimedRobot {
     digi4 = new DigitalInput(3);
     digi5 = new DigitalInput(4);
     digi6 = new DigitalInput(5);
-    // Define the sensors
+    // Defines the sensors
 
     Lstick = new Joystick(0);
     Xstick = new Joystick(1);
-    Nstick = new Joystick(2);
     // Declares controllers as joysticks
 
     left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
     right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
     // Control which motors control which sides of the robot in terms of movement
 
-    m_1 = new WPI_VictorSPX(1);
-    m_2 = new WPI_VictorSPX(3);
     m_myRobot = new DifferentialDrive(left_side, right_side);
+    // Assigns both sides to the differential drive method
 
     FirstBallIntake = new WPI_VictorSPX(5);
     SecondBallIntake = new WPI_VictorSPX(6);
@@ -118,14 +116,14 @@ public class Robot extends TimedRobot {
     speed6 = 0.5;
     speed7 = 0.5;
     BallSpeed = 0;
-    // Do we need these defined speeds?
+    // Do we need these defined speeds?!?!
     c.setClosedLoopControl(false);
 
     soli = new DoubleSolenoid(0, 1);
     poli = new DoubleSolenoid(2, 3);
     holi = new DoubleSolenoid(4, 5);
     roli = new DoubleSolenoid(6, 7);
-    // Define the double solenoids named: soli, poli, holi, roli
+    // Define the double solenoids and name them: soli, poli, holi, roli
 
   }
 
@@ -133,13 +131,15 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     gety = Lstick.getY();
-    // gety = gety * -1;
     getx = Lstick.getX();
-    // getx = getx * -1;
 
     if (getx > -0.1 && getx < 0.1) {
       getx = 0;
     }
+    // Can't this be simplified to:
+    // if (getx != 0) ????
+    // No it cannot because then it will set everything to 0. Not just the
+    // imperfections
 
     if (gety > -0.1 && gety < 0.1) {
       gety = 0;
@@ -175,14 +175,11 @@ public class Robot extends TimedRobot {
     SliderValue = Xstick.getRawAxis(3);
     // Assigning the standing joystick's buttons
 
-    // NinB = Nstick.getRawButton(1);
-    // If the Nintendo Switch controller is used
+    ScanValue = Xstick.getRawAxis(2);
+    // Defines the scan value as the standing joystick's Z axis
 
     pressureSwitch = c.getPressureSwitchValue();
-    // Define the pressure switch
-
-    ScanValue = Xstick.getRawAxis(2);
-    // Define the scan value as standing joystick's Z axis
+    // Defines the pressure switch and gets its value
 
     if (BallSwitch) {
       BallIntake.stopMotor();
@@ -191,27 +188,31 @@ public class Robot extends TimedRobot {
     } else if (!BallSwitch && !LBValue) {
       BallIntake.set(0);
     }
+    // What happens when the ball intake limit switch is pressed (true)
 
     if (XValue) {
       BallIntake.set(0.8);
     } else {
       BallIntake.set(0);
     }
+    // Makes the X button on the handheld controller an override
 
     if (BValue) {
       BallLauncher.set(1);
     } else {
       BallLauncher.set(0);
     }
+    // Makes the B button launch the ball
 
     if (HatchSwitch) {
       System.out.println("TOUCHING WALL");
-      m_myRobot.tankDrive(0, 0); // Stop robot movement
+      m_myRobot.tankDrive(0, 0); // Stops robot movement
       // poli.set(Value.kReverse)
       // Fire/retract solenoid; ask Kurtis which one it is
     } else {
 
     }
+    // What happens when the gripper limit switch is pressed (true)
 
     if (getx != 0 || gety != 0) {
       m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
@@ -221,6 +222,7 @@ public class Robot extends TimedRobot {
     } else {
 
     }
+    // Controls the robot's movement
 
     if (AValue) {
       if (!pressureSwitch) {
@@ -234,7 +236,7 @@ public class Robot extends TimedRobot {
     } else {
       c.setClosedLoopControl(false);
     }
-    // Run compressor
+    // Run compressor if the A button on the handheld controller is pressed
 
     if (SliderValue == -1) {
       if (TriggerValue) {
@@ -279,6 +281,7 @@ public class Robot extends TimedRobot {
 
       if (OuterRValue) {
         System.out.println("Firing solenoid 6");
+        // Engage the sixth pneumatic
       } else {
 
       }
@@ -289,8 +292,14 @@ public class Robot extends TimedRobot {
       roli.set(Value.kOff);
       // Turns off all solenoids
     }
+    // If the standing joystick's slider is set to off, all solenoids are off
 
-    // System.out.println(ScanValue);
+    if (ScanValue != 0) {
+      ScanValue = 0;
+    } else {
+
+    }
+    // Account for the possible inaccuracy of the joystick's Z axis value
 
     if (ScanValue == 1) {
       if (firstdigi && secondigi) {
@@ -301,7 +310,7 @@ public class Robot extends TimedRobot {
         System.out.println("Robot is moving");
         m_myRobot.arcadeDrive(0.5, 0);
       }
-      // Scan routine right
+      // Scan routine RIGHT, based on the standing controller's Z axis value
     } else if (ScanValue == -1) {
       if (firstdigi && secondigi) {
         m_myRobot.tankDrive(0, 0.5);
@@ -311,7 +320,7 @@ public class Robot extends TimedRobot {
         System.out.println("Robot is moving");
         m_myRobot.arcadeDrive(-0.5, 0);
       }
-      // Scan routine left
+      // Scan routine LEFT, based on the standing controller's Z axis value
     } else {
 
     }
@@ -330,12 +339,13 @@ public class Robot extends TimedRobot {
     // System.out.println("Firing solenoid 6");
     // // Engage the sixth pneumatic
 
+    // Pneumatics control
     // Above code only to be activated if stand-up joystick is no longer used for
-    // pneumatic control
 
   }
 
   public void autonomousInit() {
+
   }
 
   public void autonomousPeriodic() {
