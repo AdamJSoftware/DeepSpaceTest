@@ -91,22 +91,17 @@ public class Robot extends TimedRobot {
     digi6 = new DigitalInput(5);
     // Defines the sensors
 
-    Lstick = new Joystick(0);
-    Xstick = new Joystick(1);
-    // Declares controllers as joysticks
+    Lstick = new Joystick(0); // Logitech Joystick
+    Xstick = new Joystick(1); // Logitech Xtreme Joystick
+    Nstick = new Joystick(2); // Nintendo Joystick
+    // Declares controllers as a joystick
 
     left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
     right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
     // Control which motors control which sides of the robot in terms of movement
 
     m_myRobot = new DifferentialDrive(left_side, right_side);
-    // Assigns both sides to the differential drive method
-
-    FirstBallIntake = new WPI_VictorSPX(5);
-    SecondBallIntake = new WPI_VictorSPX(6);
-    BallIntake = new SpeedControllerGroup(FirstBallIntake, SecondBallIntake);
-
-    BallLauncher = new WPI_VictorSPX(7);
+    // Assigns both sides to differential drive method
 
     speed1 = 0;
     speed2 = -0.46;
@@ -173,22 +168,13 @@ public class Robot extends TimedRobot {
     InnerRValue = Xstick.getRawButton(4);
     OuterRValue = Xstick.getRawButton(6);
     SliderValue = Xstick.getRawAxis(3);
-    // Assigning the standing joystick's buttons
+    // Assigning the Xtreme joystick's buttons
 
     ScanValue = Xstick.getRawAxis(2);
     // Defines the scan value as the standing joystick's Z axis
 
     pressureSwitch = c.getPressureSwitchValue();
-    // Defines the pressure switch and gets its value
-
-    if (BallSwitch) {
-      BallIntake.stopMotor();
-    } else if (!BallSwitch && LBValue) {
-      BallIntake.set(0.8);
-    } else if (!BallSwitch && !LBValue) {
-      BallIntake.set(0);
-    }
-    // What happens when the ball intake limit switch is pressed (true)
+    // Define the pressure switch and gets it's value
 
     if (XValue) {
       BallIntake.set(0.8);
@@ -236,7 +222,17 @@ public class Robot extends TimedRobot {
     } else {
       c.setClosedLoopControl(false);
     }
-    // Run compressor if the A button on the handheld controller is pressed
+    // If the A button is pressed. Run the compressor.
+
+    if (getx != 0 || gety != 0) {
+      m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
+    } else if (left_trig != 0 || right_trig != 0) {
+      System.out.println("MOVING ROBOT");
+      m_myRobot.tankDrive(left_trig, right_trig);
+    } else {
+
+    }
+    // Basic robot movement with the axis as well as with the tiggers
 
     if (SliderValue == -1) {
       if (TriggerValue) {
@@ -294,7 +290,7 @@ public class Robot extends TimedRobot {
     }
     // If the standing joystick's slider is set to off, all solenoids are off
 
-    if (ScanValue != 0) {
+    if (ScanValue > -0.1 && ScanValue < 0.1) {
       ScanValue = 0;
     } else {
 
