@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.Joystick.AxisType;
 import edu.wpi.first.wpilibj.buttons.Trigger;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
@@ -26,6 +27,7 @@ public class Robot extends TimedRobot {
   public WPI_VictorSPX BallLauncher;
   public Joystick Lstick;
   public Joystick Xstick;
+  public Joystick Nstick;
   // Defines the joysticks: Lstick = Logitech; Xstick = standing/Xtreme
   public DigitalInput digi;
   public DigitalInput digi2;
@@ -68,27 +70,33 @@ public class Robot extends TimedRobot {
   public double right_trig;
   public double ScanValue;
   public double SliderValue;
+  public double Reset;
+  public Value grip;
   public TimeUnit TimeU;
   public Compressor c;
   public DoubleSolenoid soli;
-  public DoubleSolenoid poli;
-  public DoubleSolenoid holi;
-  public DoubleSolenoid roli;
+  public DoubleSolenoid Gripper;
+  public DoubleSolenoid Fingers;
+  public DoubleSolenoid Elevator;
+  public DoubleSolenoid Intake;
   // public int POVValue;
-  // If the standing controller is no longer used, activate this variable
+  // If the joystick controller is no longer used, activate this variable
 
   @Override
   public void robotInit() {
 
+    SmartDashboard.putNumber("Robot Speed: ", 0);
+    SmartDashboard.putBoolean("Limit Switch: ", true);
+
     c = new Compressor(0);
     // Creates compressor object
 
-    digi = new DigitalInput(0);
-    digi2 = new DigitalInput(2);
-    digi3 = new DigitalInput(1);
-    digi4 = new DigitalInput(3);
-    digi5 = new DigitalInput(4);
-    digi6 = new DigitalInput(5);
+    digi = new DigitalInput(0); // DIO 0
+    digi2 = new DigitalInput(1); // DIO 1
+    digi3 = new DigitalInput(2); // DIO 2
+    digi4 = new DigitalInput(3); // DIO 3
+    digi5 = new DigitalInput(4); // DIO 4
+    digi6 = new DigitalInput(5); // DIO 5
     // Defines the sensors
 
     Lstick = new Joystick(0); // Logitech Joystick
@@ -96,12 +104,18 @@ public class Robot extends TimedRobot {
     Nstick = new Joystick(2); // Nintendo Joystick
     // Declares controllers as a joystick
 
-    left_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(2));
-    right_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
+    FirstBallIntake = new WPI_VictorSPX(2);
+    SecondBallIntake = new WPI_VictorSPX(7);
+    BallLauncher = new WPI_VictorSPX(6);
+
+    left_side = new SpeedControllerGroup(new WPI_VictorSPX(3), new WPI_VictorSPX(4));
+    right_side = new SpeedControllerGroup(new WPI_VictorSPX(1), new WPI_VictorSPX(5));
     // Control which motors control which sides of the robot in terms of movement
 
     m_myRobot = new DifferentialDrive(left_side, right_side);
     // Assigns both sides to differential drive method
+
+    BallIntake = new SpeedControllerGroup(FirstBallIntake, SecondBallIntake);
 
     speed1 = 0;
     speed2 = -0.46;
@@ -114,11 +128,12 @@ public class Robot extends TimedRobot {
     // Do we need these defined speeds?!?!
     c.setClosedLoopControl(false);
 
-    soli = new DoubleSolenoid(0, 1);
-    poli = new DoubleSolenoid(2, 3);
-    holi = new DoubleSolenoid(4, 5);
-    roli = new DoubleSolenoid(6, 7);
-    // Define the double solenoids and name them: soli, poli, holi, roli
+    soli = new DoubleSolenoid(1, 0, 1);
+    Gripper = new DoubleSolenoid(1, 2, 3);
+    Fingers = new DoubleSolenoid(1, 4, 5);
+    Elevator = new DoubleSolenoid(1, 6, 7);
+    Intake = new DoubleSolenoid(0, 6, 7);
+    // Define the double solenoids
 
   }
 
@@ -131,10 +146,6 @@ public class Robot extends TimedRobot {
     if (getx > -0.1 && getx < 0.1) {
       getx = 0;
     }
-    // Can't this be simplified to:
-    // if (getx != 0) ????
-    // No it cannot because then it will set everything to 0. Not just the
-    // imperfections
 
     if (gety > -0.1 && gety < 0.1) {
       gety = 0;
@@ -150,13 +161,13 @@ public class Robot extends TimedRobot {
     thirddigi = digi3.get();
     fourthdigi = digi4.get();
     BallSwitch = digi5.get();
-    // HatchSwitch = digi6.get();
+    HatchSwitch = digi6.get();
     // Get a boolean value from the sensors and limit switches
 
     LBValue = Lstick.getRawButton(5);
     YValue = Lstick.getRawButton(4);
-    BValue = Lstick.getRawButton(3);
-    XValue = Lstick.getRawButton(2);
+    BValue = Lstick.getRawButton(2);
+    XValue = Lstick.getRawButton(3);
     AValue = Lstick.getRawButton(1);
     // POVValue = Lstick.getPOV();
     // Assigning the handheld Logitech controller's buttons
@@ -164,8 +175,8 @@ public class Robot extends TimedRobot {
     TriggerValue = Xstick.getRawButton(1);
     ThumbValue = Xstick.getRawButton(2);
     InnerLValue = Xstick.getRawButton(3);
-    OuterLValue = Xstick.getRawButton(5);
     InnerRValue = Xstick.getRawButton(4);
+    OuterLValue = Xstick.getRawButton(5);
     OuterRValue = Xstick.getRawButton(6);
     SliderValue = Xstick.getRawAxis(3);
     // Assigning the Xtreme joystick's buttons
@@ -174,121 +185,125 @@ public class Robot extends TimedRobot {
     // Defines the scan value as the standing joystick's Z axis
 
     pressureSwitch = c.getPressureSwitchValue();
+
+    grip = Gripper.get();
+    System.out.println("Gripper Value " + grip);
+
     // Define the pressure switch and gets it's value
 
-    if (XValue) {
-      BallIntake.set(0.8);
-    } else {
-      BallIntake.set(0);
-    }
-    // Makes the X button on the handheld controller an override
-
-    if (BValue) {
-      BallLauncher.set(1);
-    } else {
-      BallLauncher.set(0);
-    }
     // Makes the B button launch the ball
 
-    if (HatchSwitch) {
-      System.out.println("TOUCHING WALL");
-      m_myRobot.tankDrive(0, 0); // Stops robot movement
-      // poli.set(Value.kReverse)
-      // Fire/retract solenoid; ask Kurtis which one it is
-    } else {
+    System.out.println(BallSwitch);
+    System.out.println(HatchSwitch);
 
+    if (XValue && !BallSwitch) {
+      BallIntake.set(0.8);
+      BallLauncher.set(0.4);
+    } else if (XValue && BallSwitch) {
+      BallIntake.set(0);
+      BallLauncher.set(0);
+    } else if (BValue) {
+      BallLauncher.set(1);
+    } else if (!XValue) {
+      BallLauncher.set(0);
+      BallIntake.set(0);
     }
-    // What happens when the gripper limit switch is pressed (true)
 
     if (getx != 0 || gety != 0) {
       m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
     } else if (left_trig != 0 || right_trig != 0) {
       System.out.println("MOVING ROBOT");
-      m_myRobot.tankDrive(left_trig, right_trig);
+      m_myRobot.tankDrive(left_trig / 2, right_trig / 2);
     } else {
 
     }
     // Controls the robot's movement
 
-    if (AValue) {
-      if (!pressureSwitch) {
-        System.out.println("RUNNING COMPRESSOR");
-        c.enabled();
-        c.setClosedLoopControl(true);
-      } else {
-        System.out.println("COMPRESSOR FULL");
-        c.setClosedLoopControl(false);
-      }
-    } else {
+    if (!pressureSwitch) {
+      System.out.println("RUNNING COMPRESSOR");
+      c.enabled();
       c.setClosedLoopControl(false);
+    } else {
+      System.out.println("COMPRESSOR FULL");
+      c.setClosedLoopControl(true);
     }
+
     // If the A button is pressed. Run the compressor.
 
-    if (getx != 0 || gety != 0) {
+    if (getx != 0 || gety != 0)
+
+    {
       m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
     } else if (left_trig != 0 || right_trig != 0) {
       System.out.println("MOVING ROBOT");
-      m_myRobot.tankDrive(left_trig, right_trig);
+      m_myRobot.tankDrive(right_trig, left_trig);
     } else {
 
     }
     // Basic robot movement with the axis as well as with the tiggers
 
-    if (SliderValue == -1) {
-      if (TriggerValue) {
+    Reset = 0;
+
+    if (Xstick.getRawButtonPressed(1)) { // change to TriggerValue after a test
+      Reset++;
+      if (Reset == 1) {
         System.out.println("Firing solenoid 1");
-        soli.set(Value.kForward);
+        Intake.set(Value.kForward);
         // Engage the first pneumatic
-      } else {
-        soli.set(Value.kReverse);
-      }
+      } else if (Reset == 2)
+        Intake.set(Value.kReverse);
+    } else {
+
+    }
+
+    if (SliderValue == -1) {
+      // if (TriggerValue) {
+      // System.out.println("Firing solenoid 1");
+      // Intake.set(Value.kForward);
+      // // Engage the first pneumatic
+      // } else {
+      // Intake.set(Value.kReverse);
+      // }
 
       if (ThumbValue) {
-        System.out.println("Firing solenoid 2");
-        poli.set(Value.kForward);
-        // Engage the second pneumatic
+        if (!HatchSwitch) {
+          System.out.println("Firing gripper");
+          Gripper.set(Value.kReverse);
+          // Engage the first pneumatic
+        } else {
+          Fingers.set(Value.kForward);
+        }
       } else {
-        poli.set(Value.kReverse);
+        Gripper.set(Value.kForward);
       }
 
       if (InnerLValue) {
-        System.out.println("Firing solenoid 3");
-        holi.set(Value.kForward);
+        System.out.println("Fingers out");
+        Fingers.set(Value.kForward);
         // Engage the third pneumatic
       } else {
-        holi.set(Value.kReverse);
+        Fingers.set(Value.kReverse);
       }
       // Engage the fifth pneumatic
 
-      if (OuterLValue) {
-        System.out.println("Firing solenoid 4");
-        roli.set(Value.kForward);
-        // Engage the fourth pneumatic
-      } else {
-        roli.set(Value.kReverse);
-      }
-
       if (InnerRValue) {
-        System.out.println("Firing solenoid 5");
-        // Engage the fifth pneumatic
+        System.out.println("Elevator up");
+        Elevator.set(Value.kReverse);
+        // Engage the elevator pneumatic
       } else {
-
+        Elevator.set(Value.kForward);
       }
 
-      if (OuterRValue) {
-        System.out.println("Firing solenoid 6");
-        // Engage the sixth pneumatic
-      } else {
+    } else
 
-      }
-    } else {
+    {
       soli.set(Value.kOff);
-      poli.set(Value.kOff);
-      holi.set(Value.kOff);
-      roli.set(Value.kOff);
-      // Turns off all solenoids
+      Gripper.set(Value.kOff);
+      Fingers.set(Value.kOff);
+      Elevator.set(Value.kOff);
+      Intake.set(Value.kOff);
+      // Turns off all solenoids if the standing joystick's slider is set to --
     }
-    // If the standing joystick's slider is set to off, all solenoids are off
 
     if (ScanValue > -0.1 && ScanValue < 0.1) {
       ScanValue = 0;
@@ -298,45 +313,33 @@ public class Robot extends TimedRobot {
     // Account for the possible inaccuracy of the joystick's Z axis value
 
     if (ScanValue == 1) {
-      if (firstdigi && secondigi) {
-        m_myRobot.tankDrive(0, 0.5);
-      } else if (firstdigi || secondigi) {
-        m_myRobot.arcadeDrive(0, 0.3);
+      if (thirddigi && !fourthdigi) {
+        m_myRobot.arcadeDrive(0.5, 0);
+
       } else {
         System.out.println("Robot is moving");
-        m_myRobot.arcadeDrive(0.5, 0);
+        m_myRobot.arcadeDrive(0.1, 0.55);
       }
       // Scan routine RIGHT, based on the standing controller's Z axis value
     } else if (ScanValue == -1) {
-      if (firstdigi && secondigi) {
-        m_myRobot.tankDrive(0, 0.5);
-      } else if (firstdigi || secondigi) {
-        m_myRobot.arcadeDrive(0, 0.3);
+      if (thirddigi && !fourthdigi) {
+        m_myRobot.arcadeDrive(0.5, 0);
       } else {
         System.out.println("Robot is moving");
-        m_myRobot.arcadeDrive(-0.5, 0);
+        m_myRobot.arcadeDrive(0.1, -0.55);
       }
       // Scan routine LEFT, based on the standing controller's Z axis value
     } else {
 
     }
 
-    // Engage the sixth pneumatic
-    // } else if (POVValue == 0) {
-    // System.out.println("Firing solenoid 3");
-    // // Engage the third pneumatic
-    // } else if (POVValue == 90) {
-    // System.out.println("Firing solenoid 4");
-    // // Engage the fourth pneumatic
-    // } else if (POVValue == 180) {
-    // System.out.println("Firing solenoid 5");
-    // // Engage the fifth pneumatic
-    // } else if (POVValue == 270) {
-    // System.out.println("Firing solenoid 6");
-    // // Engage the sixth pneumatic
-
-    // Pneumatics control
-    // Above code only to be activated if stand-up joystick is no longer used for
+    SmartDashboard.putNumber("Robot Speed: ", (getx + gety) / 2);
+    SmartDashboard.putBoolean("Sensor1: ", digi.get());
+    SmartDashboard.putBoolean("Sensor2: ", digi2.get());
+    SmartDashboard.putBoolean("Sensor3: ", digi3.get());
+    SmartDashboard.putBoolean("Sensor4: ", digi4.get());
+    SmartDashboard.putBoolean("Ball Switch: ", BallSwitch);
+    // SmartDashboard.putBoolean("Gripper: ", Gripper.get());
 
   }
 
