@@ -176,7 +176,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-    HatchButton = Xstick.getRawButton(7);
+    HatchButton = Xstick.getRawButton(6);
 
     if (testbut && Activated == 1) {
       Activated = 0;
@@ -263,7 +263,7 @@ public class Robot extends TimedRobot {
     }
 
     if (getx != 0 || gety != 0) {
-      m_myRobot.arcadeDrive(Lstick.getY(), Lstick.getX());
+      m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
     } else if (left_trig != 0 || right_trig != 0) {
       // System.out.println("MOVING ROBOT");
       m_myRobot.tankDrive(left_trig / 2, right_trig / 2);
@@ -282,17 +282,6 @@ public class Robot extends TimedRobot {
     }
 
     // If the A button is pressed. Run the compressor.
-
-    if (getx != 0 || gety != 0)
-
-    {
-      m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
-    } else if (left_trig != 0 || right_trig != 0) {
-      System.out.println("MOVING ROBOT");
-      m_myRobot.tankDrive(right_trig, left_trig);
-    } else {
-
-    }
     // Basic robot movement with the axis as well as with the tiggers
 
     // System.out.println("DIGI 1 " + firstdigi);
@@ -392,6 +381,21 @@ public class Robot extends TimedRobot {
         m_myRobot.arcadeDrive(0.1, -0.55);
       }
       // Scan routine LEFT, based on the standing controller's Z axis value
+    } else if (ScanValue == 1 && HatchButton) {
+      if ((thirddigi || fourthdigi) && (fifthdigi || sixdigi)) {
+        m_myRobot.arcadeDrive(0.5, 0);
+
+      } else {
+        System.out.println("Robot is moving");
+        m_myRobot.arcadeDrive(0.1, 0.55);
+      }
+    } else if (ScanValue == -1 && HatchButton) {
+      if ((thirddigi || fourthdigi) && (fifthdigi || sixdigi)) {
+        m_myRobot.arcadeDrive(0.5, 0);
+      } else {
+        System.out.println("Robot is moving");
+        m_myRobot.arcadeDrive(0.1, -0.55);
+      }
     } else {
 
     }
