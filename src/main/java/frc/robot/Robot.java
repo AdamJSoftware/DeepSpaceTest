@@ -1,20 +1,12 @@
 package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
-
-import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Solenoid;
-
-import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Joystick.AxisType;
-import edu.wpi.first.wpilibj.buttons.Button;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
-import edu.wpi.first.wpilibj.buttons.Trigger;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -26,23 +18,20 @@ public class Robot extends TimedRobot {
   public DifferentialDrive m_myRobot;
   public SpeedControllerGroup left_side;
   public SpeedControllerGroup right_side;
-  public SpeedControllerGroup BallIntake;
-  public WPI_VictorSPX FirstBallIntake;
-  public WPI_VictorSPX SecondBallIntake;
-  public WPI_VictorSPX BallLauncher;
-  public Joystick Lstick;
-  public Joystick Xstick;
-  public Joystick Nstick;
-  // Defines the joysticks: Lstick = Logitech; Xstick = standing/Xtreme
-  public DigitalInput digi;
-  public DigitalInput digi2;
-  public DigitalInput digi3;
-  public DigitalInput digi4;
-  public DigitalInput digi5;
-  public DigitalInput digi6;
-  public DigitalInput digi7;
-  public DigitalInput digi8;
-  public boolean testbut;
+  public SpeedControllerGroup BallIntake; // Combines both ball intakes to a group
+  public WPI_VictorSPX FirstBallIntake; // Second ball intake motor
+  public WPI_VictorSPX SecondBallIntake; // First ball intake motor
+  public WPI_VictorSPX BallLauncher; // Ball Launch motor
+  public Joystick Lstick; // Logitech Gamepad
+  public Joystick Xstick; // Logitech Extreme Stick
+  public DigitalInput digi1; // Digital Input - 1
+  public DigitalInput digi2; // Digital Input - 2
+  public DigitalInput digi3; // Digital Input - 3
+  public DigitalInput digi4; // Digital Input - 4
+  public DigitalInput digi5; // Digital Input - 5
+  public DigitalInput digi6; // Digital Input - 6
+  public DigitalInput digi7; // Digital Input - 7
+  public DigitalInput digi8; // Digital Input - 8
   public boolean YValue;
   public boolean BValue;
   public boolean LBValue;
@@ -110,7 +99,7 @@ public class Robot extends TimedRobot {
     c = new Compressor(0);
     // Creates compressor object
 
-    digi = new DigitalInput(0); // DIO 0
+    digi1 = new DigitalInput(0); // DIO 0
     digi2 = new DigitalInput(1); // DIO 1
     digi3 = new DigitalInput(2); // DIO 2
     digi4 = new DigitalInput(3); // DIO 3
@@ -122,7 +111,6 @@ public class Robot extends TimedRobot {
 
     Lstick = new Joystick(0); // Logitech Joystick
     Xstick = new Joystick(1); // Logitech Xtreme Joystick
-    Nstick = new Joystick(2); // Nintendo Joystick
     // Declares controllers as a joystick
 
     FirstBallIntake = new WPI_VictorSPX(2);
@@ -178,12 +166,6 @@ public class Robot extends TimedRobot {
 
     HatchButton = Xstick.getRawButton(6);
 
-    if (testbut && Activated == 1) {
-      Activated = 0;
-    } else if (testbut && Activated == 0) {
-      Activated = 1;
-    }
-
     gety = Lstick.getY();
     getx = Lstick.getX();
 
@@ -200,7 +182,7 @@ public class Robot extends TimedRobot {
     right_trig = Lstick.getRawAxis(3);
     // Define the left and right triggers
 
-    firstdigi = digi.get();
+    firstdigi = digi1.get();
     secondigi = digi2.get();
     thirddigi = digi3.get();
     fourthdigi = digi4.get();
@@ -208,18 +190,6 @@ public class Robot extends TimedRobot {
     sixdigi = digi6.get();
     BallSwitch = digi7.get();
     HatchSwitch = digi8.get();
-
-    // BallSwitch = digi5.get();
-    // HatchSwitch = digi6.get();
-    // Get a boolean value from the sensors and limit switches
-
-    // System.out.println("Ball: " + digi5.get());
-    // System.out.println("Hatch: " + digi6.get());
-
-    // System.out.println("Ball Switch: " + ballSwitch.get());
-    // ;
-    // System.out.println("Hatch Switch: " + hatchSwitch.get());
-    // ;
 
     LBValue = Lstick.getRawButton(5);
     YValue = Lstick.getRawButton(4);
@@ -273,21 +243,14 @@ public class Robot extends TimedRobot {
     // Controls the robot's movement
 
     if (!pressureSwitch) {
-      // System.out.println("RUNNING COMPRESSOR");
       c.enabled();
       c.setClosedLoopControl(false);
     } else {
-      // System.out.println("COMPRESSOR FULL");
       c.setClosedLoopControl(true);
     }
 
     // If the A button is pressed. Run the compressor.
     // Basic robot movement with the axis as well as with the tiggers
-
-    // System.out.println("DIGI 1 " + firstdigi);
-    // System.out.println("DIGI 2 " + secondigi);
-    // System.out.println("DIGI 3 " + thirddigi);
-    // System.out.println("DIGI 4 " + fourthdigi);
 
     if (SliderValue == -1) {
       if (TriggerValue && triggerPressed) {
@@ -401,7 +364,7 @@ public class Robot extends TimedRobot {
     }
 
     SmartDashboard.putNumber("Robot Speed: ", (getx + gety) / 2);
-    SmartDashboard.putBoolean("Sensor1: ", digi.get());
+    SmartDashboard.putBoolean("Sensor1: ", digi1.get());
     SmartDashboard.putBoolean("Sensor2: ", digi2.get());
     SmartDashboard.putBoolean("Sensor3: ", digi3.get());
     SmartDashboard.putBoolean("Sensor4: ", digi4.get());
@@ -409,9 +372,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("Sensor6: ", digi6.get());
     SmartDashboard.putBoolean("Ball Switch: ", digi7.get());
     SmartDashboard.putBoolean("Hatch Switch: ", digi8.get());
-    // SmartDashboard.putBoolean("Gripper: ", Gripper.get());
-
-    // System.out.println(testButton.get());
   }
 
   public void autonomousInit() {
