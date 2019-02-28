@@ -24,6 +24,7 @@ public class Robot extends TimedRobot {
   public WPI_VictorSPX BallLauncher; // Ball Launch motor
   public Joystick Lstick; // Logitech Gamepad
   public Joystick Xstick; // Logitech Extreme Stick
+  public DigitalInput digi0; // Digital Input - 0
   public DigitalInput digi1; // Digital Input - 1
   public DigitalInput digi2; // Digital Input - 2
   public DigitalInput digi3; // Digital Input - 3
@@ -31,7 +32,6 @@ public class Robot extends TimedRobot {
   public DigitalInput digi5; // Digital Input - 5
   public DigitalInput digi6; // Digital Input - 6
   public DigitalInput digi7; // Digital Input - 7
-  public DigitalInput digi8; // Digital Input - 8
   public boolean YValue;
   public boolean BValue;
   public boolean LBValue;
@@ -58,8 +58,6 @@ public class Robot extends TimedRobot {
   public boolean innerLPressed;
   public boolean innerRPressed;
   public boolean HatchButton;
-  // public boolean NinB;
-  // If the Nintendo controller is used, activate this variable
   public double speed1;
   public double speed2;
   public double speed3;
@@ -74,8 +72,6 @@ public class Robot extends TimedRobot {
   public double right_trig;
   public double ScanValue;
   public double SliderValue;
-  public double Activated;
-  public double Deactivated;
   public Value grip;
   public TimeUnit TimeU;
   public Compressor c;
@@ -84,10 +80,6 @@ public class Robot extends TimedRobot {
   public DoubleSolenoid Fingers;
   public DoubleSolenoid Elevator;
   public DoubleSolenoid Intake;
-
-  private DigitalInput hatchSwitch;
-  private DigitalInput ballSwitch;
-  private DigitalInput testSwitch;
 
   private JoystickButton testButton;
   // public int POVValue;
@@ -99,14 +91,14 @@ public class Robot extends TimedRobot {
     c = new Compressor(0);
     // Creates compressor object
 
-    digi1 = new DigitalInput(0); // DIO 0
-    digi2 = new DigitalInput(1); // DIO 1
-    digi3 = new DigitalInput(2); // DIO 2
-    digi4 = new DigitalInput(3); // DIO 3
-    digi5 = new DigitalInput(4); // DIO 4
-    digi6 = new DigitalInput(5); // DIO 5
-    digi7 = new DigitalInput(6);
-    digi8 = new DigitalInput(7);
+    digi0 = new DigitalInput(0); // DIO 0
+    digi1 = new DigitalInput(1); // DIO 1
+    digi2 = new DigitalInput(2); // DIO 2
+    digi3 = new DigitalInput(3); // DIO 3
+    digi4 = new DigitalInput(4); // DIO 4
+    digi5 = new DigitalInput(5); // DIO 5
+    digi6 = new DigitalInput(6);
+    digi7 = new DigitalInput(7);
     // Defines the sensors
 
     Lstick = new Joystick(0); // Logitech Joystick
@@ -157,8 +149,6 @@ public class Robot extends TimedRobot {
         return false;
       }
     });
-    Activated = 0;
-    Deactivated = 1;
   }
 
   @Override
@@ -182,21 +172,20 @@ public class Robot extends TimedRobot {
     right_trig = Lstick.getRawAxis(3);
     // Define the left and right triggers
 
-    firstdigi = digi1.get();
-    secondigi = digi2.get();
-    thirddigi = digi3.get();
-    fourthdigi = digi4.get();
-    fifthdigi = digi5.get();
-    sixdigi = digi6.get();
-    BallSwitch = digi7.get();
-    HatchSwitch = digi8.get();
+    firstdigi = digi0.get();
+    secondigi = digi1.get();
+    thirddigi = digi2.get();
+    fourthdigi = digi3.get();
+    fifthdigi = digi4.get();
+    sixdigi = digi5.get();
+    BallSwitch = digi6.get();
+    HatchSwitch = digi7.get();
 
     LBValue = Lstick.getRawButton(5);
     YValue = Lstick.getRawButton(4);
     BValue = Lstick.getRawButton(2);
     XValue = Lstick.getRawButton(3);
     AValue = Lstick.getRawButton(1);
-    // POVValue = Lstick.getPOV();
     // Assigning the handheld Logitech controller's buttons
 
     TriggerValue = Xstick.getRawButtonPressed(1);
@@ -252,7 +241,7 @@ public class Robot extends TimedRobot {
     // If the A button is pressed. Run the compressor.
     // Basic robot movement with the axis as well as with the tiggers
 
-    if (SliderValue == -1) {
+    if (SliderValue == 1) {
       if (TriggerValue && triggerPressed) {
         triggerPressed = false;
       } else if (TriggerValue && !triggerPressed) {
@@ -364,14 +353,14 @@ public class Robot extends TimedRobot {
     }
 
     SmartDashboard.putNumber("Robot Speed: ", (getx + gety) / 2);
-    SmartDashboard.putBoolean("Sensor1: ", digi1.get());
-    SmartDashboard.putBoolean("Sensor2: ", digi2.get());
-    SmartDashboard.putBoolean("Sensor3: ", digi3.get());
-    SmartDashboard.putBoolean("Sensor4: ", digi4.get());
-    SmartDashboard.putBoolean("Sensor5: ", digi5.get());
-    SmartDashboard.putBoolean("Sensor6: ", digi6.get());
-    SmartDashboard.putBoolean("Ball Switch: ", digi7.get());
-    SmartDashboard.putBoolean("Hatch Switch: ", digi8.get());
+    SmartDashboard.putBoolean("Sensor1: ", digi0.get());
+    SmartDashboard.putBoolean("Sensor2: ", digi1.get());
+    SmartDashboard.putBoolean("Sensor3: ", digi2.get());
+    SmartDashboard.putBoolean("Sensor4: ", digi3.get());
+    SmartDashboard.putBoolean("Sensor5: ", digi4.get());
+    SmartDashboard.putBoolean("Sensor6: ", digi5.get());
+    SmartDashboard.putBoolean("Ball Switch: ", digi6.get());
+    SmartDashboard.putBoolean("Hatch Switch: ", digi7.get());
   }
 
   public void autonomousInit() {
