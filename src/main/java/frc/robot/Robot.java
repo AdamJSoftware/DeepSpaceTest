@@ -15,36 +15,43 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class Robot extends TimedRobot {
-  public boolean BValue; // Returns value of the B button on the Logitech Gamepad
-  public boolean XValue; // Returns value of the X button on the Logitech Gamepad
+  public boolean AValue; // A button on the Logitech Gamepad
+  public boolean BValue; // B button on the Logitech Gamepad
+  public boolean XValue; // X button on the Logitech Gamepad
   public boolean TriggerValue;
   public boolean ThumbValue;
   public boolean InnerLValue;
   public boolean OuterLValue;
+  public boolean OuterRValue;
   public boolean StopValue;
   public boolean HatchButton;
   public boolean FirstSensor;
   public boolean SecondSensor;
-  public boolean ThirdSensor;
-  public boolean FourthSensor;
-  public boolean FifthSensor;
-  public boolean SixthSensor;
+  public boolean SensorGroup1;
+  public boolean SensorGroup2;
   public boolean switchpressed;
   public boolean BallSwitch;
   public boolean HatchSwitch;
   public boolean ElevatorOneSwitch;
   public boolean ElevatorTwoSwitch;
+  public boolean ElevatorThreeSwitch;
   public boolean enabled;
   public boolean pressureSwitch;
   public boolean gripperPressed;
+  public boolean aPressed;
   public boolean thumbPressed;
   public boolean triggerPressed;
   public boolean innerLPressed;
+  public boolean outerLPressed;
+  public boolean outerRPressed;
   public boolean stopPressed;
   public boolean HatchValue;
   public boolean firstLevel;
   public boolean secondLevel;
   public boolean thirdLevel;
+  public boolean elevUp;
+  public boolean newAdamSwitch;
+  public boolean elevDown;
   public boolean HatchPressed;
   public Compressor c;
   public DifferentialDrive m_myRobot; // Combines both motor groups to allow driving via joystick
@@ -78,15 +85,18 @@ public class Robot extends TimedRobot {
   public WPI_VictorSPX FirstBallIntake; // First ball intake motor
   public WPI_VictorSPX SecondBallIntake; // Second ball intake motor
   public WPI_VictorSPX BallLauncher; // Ball Launcher motor
-  public WPI_VictorSPX Elevator; // Elevator motor
   public WPI_TalonSRX Drive1; // First drivetrain motor
   public WPI_TalonSRX Drive2; // Second drivetrain motor
   public WPI_TalonSRX Drive3; // Third drivetrain motor
   public WPI_TalonSRX Drive4; // Fourth drivetrain motor
+  public WPI_TalonSRX elevTalonSRX; // Elevator
+  public boolean oldvalue;
 
   @Override
   public void robotInit() {
+    newAdamSwitch = false;
     HatchValue = false;
+    oldvalue = false;
 
     prefs = Preferences.getInstance();
 
@@ -115,7 +125,7 @@ public class Robot extends TimedRobot {
     Drive4 = new WPI_TalonSRX(4);
     // New drive Talons
 
-    Elevator = new WPI_VictorSPX(5);
+    elevTalonSRX = new WPI_TalonSRX(5);
     BallLauncher = new WPI_VictorSPX(6);
     FirstBallIntake = new WPI_VictorSPX(7);
     SecondBallIntake = new WPI_VictorSPX(8);
@@ -141,7 +151,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    HatchValue = false;
+
+    if (HatchSwitch && !oldvalue) {
+      newAdamSwitch = true;
+      oldvalue = true;
+    }
+    if (!HatchSwitch && oldvalue) {
+      oldvalue = false;
+    }
 
     gety = Lstick.getY();
     getx = Lstick.getX();
@@ -155,7 +172,7 @@ public class Robot extends TimedRobot {
     if (gety > -0.1 && gety < 0.1) {
       gety = 0;
     }
-    // Accounts for axis inaccuracy (deadband)
+    // Accounts for axis inaccuracy for movement (deadband)
 
     left_trig = Lstick.getRawAxis(2);
     right_trig = Lstick.getRawAxis(3);
@@ -171,18 +188,19 @@ public class Robot extends TimedRobot {
       }
     }
     // Controls the robot's movement
+    // Currently commented to prevent the robot from randomly moving
 
     FirstSensor = digi0.get();
     SecondSensor = digi1.get();
-    ThirdSensor = digi2.get();
-    FourthSensor = digi3.get();
-    FifthSensor = digi4.get();
-    SixthSensor = digi5.get();
+    SensorGroup1 = digi2.get();
+    SensorGroup2 = digi4.get();
+    ElevatorOneSwitch = digi5.get();
     BallSwitch = digi6.get();
     HatchSwitch = digi7.get();
-    ElevatorOneSwitch = digi8.get();
-    ElevatorTwoSwitch = digi9.get();
+    ElevatorTwoSwitch = digi8.get();
+    ElevatorThreeSwitch = digi9.get();
 
+    AValue = Lstick.getRawButtonPressed(1);
     BValue = Lstick.getRawButton(2);
     XValue = Lstick.getRawButton(3);
     // Assigning the handheld Logitech controller's buttons (B & X)
@@ -192,129 +210,18 @@ public class Robot extends TimedRobot {
     ThumbValue = Xstick.getRawButtonPressed(2);
     InnerLValue = Xstick.getRawButtonPressed(3);
     HatchButton = Xstick.getRawButton(4);
+    OuterLValue = Xstick.getRawButtonPressed(5);
+    OuterRValue = Xstick.getRawButtonPressed(6);
     ScanValue = Xstick.getRawAxis(2);
     SliderValue = Xstick.getRawAxis(3);
     firstLevel = Xstick.getRawButton(11);
-    secondLevel = Xstick.getRawButtonPressed(9);
+    secondLevel = Xstick.getRawButton(9);
+    elevUp = Xstick.getRawButton(8);
+    elevDown = Xstick.getRawButton(12);
     thirdLevel = Xstick.getRawButton(7);
-    StopValue = Xstick.getRawButton(8);
+    StopValue = Xstick.getRawButtonPressed(10);
     // Assigning variables to the Xtreme joystick's buttons and axes
-
-    if (StopValue && stopPressed) {
-      stopPressed = false;
-    } else if (StopValue && !stopPressed) {
-      stopPressed = true;
-    }
-
-    if (firstLevel && !ElevatorOneSwitch) {
-      System.out.println("Running elevator to 1");
-      Elevator.set(0.4);
-    } else if (secondLevel && ElevatorOneSwitch && ElevatorTwoSwitch) {
-      System.out.println("Running elevator from 1 to 2");
-      Elevator.set(-0.4);
-    } else if (secondLevel && !ElevatorOneSwitch && !ElevatorTwoSwitch) {
-      System.out.println("Running elevator from 3 to 2");
-      Elevator.set(0.4);
-    } else if (thirdLevel) {
-      System.out.println("Running elevator to 3");
-      Elevator.set(-0.4);
-    } else if (thirdLevel && !ElevatorOneSwitch && !ElevatorTwoSwitch) {
-      Elevator.stopMotor();
-    } else if (stopPressed) {
-      Elevator.stopMotor();
-      // Stop the elevator in the case of an error to avoid damage
-    } else if (ElevatorOneSwitch && ElevatorTwoSwitch) {
-      Elevator.set(0);
-    } else {
-      Elevator.set(0);
-    }
-
-    // if (XValue && !BallSwitch) {
-    // BallIntake.set(0.8);
-    // BallLauncher.set(0.3);
-    // } else if (XValue && BallSwitch) {
-    // BallIntake.set(0);
-    // BallLauncher.set(0);
-    // } else if (BValue) {
-    // BallLauncher.set(1);
-    // } else if (!XValue && !BallSwitch) {
-    // BallLauncher.set(0);
-    // BallIntake.set(0);
-    // }
-    // Switch currently not connected, PRIORITY
-
-    if (XValue) {
-      BallIntake.set(0.8);
-      BallLauncher.set(0.3);
-    } else if (!XValue) {
-      BallIntake.set(0);
-      BallLauncher.set(0);
-    } else if (BValue) {
-      BallLauncher.set(1);
-    } else if (!BValue) {
-      BallLauncher.set(0);
-    }
-    // Controls for picking up and launching Ball
-
-    if (SliderValue != 1) {
-      if (ThumbValue && thumbPressed) {
-        thumbPressed = false;
-      } else if (ThumbValue && !thumbPressed) {
-        thumbPressed = true;
-      }
-
-      if (InnerLValue && innerLPressed) {
-        innerLPressed = false;
-      } else if (InnerLValue && !innerLPressed) {
-        innerLPressed = true;
-      }
-      // Allow toggles for Xtreme stick's controls
-
-      if (triggerPressed) {
-        Gripper.set(Value.kReverse);
-        // Engage the Gripper pneumatic
-      } else {
-        Gripper.set(Value.kForward);
-      }
-      // Set to hold instead of toggle to avoid accidental damage
-
-      if (HatchSwitch) {
-        HatchValue = true;
-        if (HatchValue) {
-          if (Fingers.get() == Value.kForward) {
-            Fingers.set(Value.kReverse);
-            System.out.println("RUNNING FINGERS IN");
-            HatchValue = false;
-            Timer.delay(0.75);
-          } else {
-            Fingers.set(Value.kForward);
-            System.out.println("RUNNING FINGERS OUT");
-            HatchValue = false;
-            Timer.delay(0.75);
-          }
-        }
-      }
-      // HatchValue -> false by default; set back to false should prevent the loop
-
-      if (innerLPressed) {
-        Intake.set(Value.kForward);
-        // Engage the Ball Intake pneumatic
-      } else {
-        Intake.set(Value.kReverse);
-      }
-
-      if (thumbPressed) {
-        Fingers.set(Value.kReverse);
-        // Engage the Fingers pneumatic
-      } else {
-        Fingers.set(Value.kForward);
-      }
-    } else {
-      Gripper.set(Value.kOff);
-      Intake.set(Value.kOff);
-      Fingers.set(Value.kOff);
-      // Turns off all solenoids if the standing joystick's slider is set to off
-    }
+    // Eventually switch elevator controls to toggles with RawButtonPressed
 
     if (ScanValue == 1 && !HatchButton) {
       if (FirstSensor && SecondSensor) {
@@ -331,19 +238,160 @@ public class Robot extends TimedRobot {
       }
       // Scan routine LEFT, based on the standing controller's Z axis value
     } else if (ScanValue == 1 && HatchButton) {
-      if ((ThirdSensor || FourthSensor) && (FifthSensor || SixthSensor)) {
+      if (SensorGroup1 && SensorGroup2) {
         m_myRobot.arcadeDrive(0.5, 0);
       } else {
         m_myRobot.arcadeDrive(0.1, 0.55);
       }
     } else if (ScanValue == -1 && HatchButton) {
-      if ((ThirdSensor || FourthSensor) && (FifthSensor || SixthSensor)) {
+      if (SensorGroup1 && SensorGroup2) {
         m_myRobot.arcadeDrive(0.5, 0);
       } else {
         m_myRobot.arcadeDrive(0.1, -0.55);
       }
     } else {
 
+    }
+
+    if (StopValue && stopPressed) {
+      stopPressed = false;
+    } else if (StopValue && !stopPressed) {
+      stopPressed = true;
+    }
+
+    if (firstLevel) {
+      System.out.println("Running elevator to 1");
+      if (!ElevatorOneSwitch) {
+        elevTalonSRX.set(1);
+      } else {
+        elevTalonSRX.stopMotor();
+      }
+    } else if (secondLevel && elevUp) {
+      System.out.println("Running elevator from 1 to 2");
+      if (!ElevatorTwoSwitch) {
+        elevTalonSRX.set(-1);
+      } else {
+        elevTalonSRX.stopMotor();
+      }
+    } else if (secondLevel && elevDown) {
+      System.out.println("Running elevator from 3 to 2");
+      if (!ElevatorTwoSwitch) {
+        elevTalonSRX.set(1);
+      } else {
+        elevTalonSRX.stopMotor();
+      }
+    } else if (thirdLevel) {
+      System.out.println("Running elevator to 3");
+      if (!ElevatorThreeSwitch) {
+        elevTalonSRX.set(-1);
+      } else {
+        elevTalonSRX.stopMotor();
+      }
+    } else if (StopValue) {
+      elevTalonSRX.stopMotor();
+      // Stop the elevator in the case of an error to avoid damage
+    } else {
+      elevTalonSRX.set(0);
+    }
+
+    if (XValue && !BallSwitch) {
+      BallIntake.set(0.8);
+      BallLauncher.set(0.3);
+    } else if (XValue && BallSwitch) {
+      BallIntake.stopMotor();
+      BallLauncher.stopMotor();
+    } else if (BValue) {
+      BallLauncher.set(1);
+    } else if (!XValue && !BallSwitch) {
+      BallLauncher.set(0);
+      BallIntake.set(0);
+    }
+    // Controls for picking up and launching Ball
+
+    if (SliderValue != 1) {
+      if (AValue && aPressed) {
+        aPressed = false;
+      } else if (AValue && !aPressed) {
+        aPressed = true;
+      }
+
+      if (ThumbValue && thumbPressed) {
+        thumbPressed = false;
+      } else if (ThumbValue && !thumbPressed) {
+        thumbPressed = true;
+      }
+
+      if (ThumbValue && thumbPressed) {
+        thumbPressed = false;
+      } else if (ThumbValue && !thumbPressed) {
+        thumbPressed = true;
+      }
+
+      if (OuterLValue && outerLPressed) {
+        outerLPressed = false;
+      } else if (OuterLValue && !outerLPressed) {
+        outerLPressed = true;
+      }
+      if (OuterRValue && outerRPressed) {
+        outerRPressed = false;
+      } else if (OuterRValue && !outerRPressed) {
+        outerRPressed = true;
+      }
+      // Allow toggles for Xtreme stick's controls
+
+      if (triggerPressed) {
+        Gripper.set(Value.kReverse);
+        // Engage the Gripper pneumatic
+      } else {
+        Gripper.set(Value.kForward);
+      }
+      // Set to hold instead of toggle to avoid accidental damage
+
+      if (newAdamSwitch) {
+        System.out.println("ADAMSWITCH");
+        newAdamSwitch = false;
+        HatchValue = true;
+        if (HatchValue) {
+          if (Fingers.get() == Value.kForward) {
+            Fingers.set(Value.kReverse);
+            System.out.println("RUNNING FINGERS IN");
+            Timer.delay(0.25);
+            HatchValue = false;
+          } else {
+            Fingers.set(Value.kForward);
+            System.out.println("RUNNING FINGERS OUT");
+            Timer.delay(0.25);
+            HatchValue = false;
+          }
+        }
+      }
+      // HatchValue -> false by default; set back to false should prevent the loop
+
+      if (thumbPressed) {
+        Intake.set(Value.kForward);
+        // Engage the Ball Intake pneumatic
+      } else {
+        Intake.set(Value.kReverse);
+      }
+
+      if (outerLPressed) {
+        if (Fingers.get() == Value.kForward) {
+          Fingers.set(Value.kReverse);
+        } else {
+          Fingers.set(Value.kForward);
+        }
+        outerLPressed = false;
+      }
+
+      // if (outerRPressed) {
+      // Fingers.set(Value.kReverse);
+      // }
+
+    } else {
+      Gripper.set(Value.kOff);
+      Intake.set(Value.kOff);
+      Fingers.set(Value.kOff);
+      // Turns off all solenoids if the standing joystick's slider is set to off
     }
 
     if (finger == Value.kForward) {
@@ -354,15 +402,14 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putBoolean("Sensor1: ", digi0.get());
     SmartDashboard.putBoolean("Sensor2: ", digi1.get());
-    SmartDashboard.putBoolean("Sensor3: ", digi2.get());
-    SmartDashboard.putBoolean("Sensor4: ", digi3.get());
-    SmartDashboard.putBoolean("Sensor5: ", digi4.get());
-    SmartDashboard.putBoolean("Sensor6: ", digi5.get());
+    SmartDashboard.putBoolean("SensorGroup1 : ", SensorGroup1);
+    SmartDashboard.putBoolean("SensorGroup2 : ", SensorGroup2);
+    SmartDashboard.putBoolean("Elevator Stop: ", stopPressed);
     SmartDashboard.putBoolean("Ball Switch: ", digi6.get());
     SmartDashboard.putBoolean("Hatch Switch: ", digi7.get());
     SmartDashboard.putBoolean("Elevator Switch 1: ", ElevatorOneSwitch);
     SmartDashboard.putBoolean("Elevator Switch 2: ", ElevatorTwoSwitch);
-    SmartDashboard.putBoolean("Elevator Stop: ", stopPressed);
+    SmartDashboard.putBoolean("Elevator Switch 3: ", ElevatorThreeSwitch);
     SmartDashboard.putString("Fingers: ", FingerString);
   }
 
