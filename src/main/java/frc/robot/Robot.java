@@ -4,57 +4,52 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Preferences;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.SpeedControllerGroup;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.TimedRobot;
 
 public class Robot extends TimedRobot {
-  public boolean AValue; // A button on the Logitech Gamepad
-  public boolean BValue; // B button on the Logitech Gamepad
-  public boolean XValue; // X button on the Logitech Gamepad
-  public boolean TriggerValue;
-  public boolean ThumbValue;
-  public boolean InnerLValue;
-  public boolean OuterLValue;
-  public boolean OuterRValue;
-  public boolean StopValue;
-  public boolean HatchButton;
-  public boolean FirstSensor;
-  public boolean SecondSensor;
-  public boolean SensorGroup1;
-  public boolean SensorGroup2;
-  public boolean switchpressed;
-  public boolean BallSwitch;
-  public boolean HatchSwitch;
-  public boolean ElevatorOneSwitch;
-  public boolean ElevatorTwoSwitch;
-  public boolean ElevatorThreeSwitch;
-  public boolean enabled;
-  public boolean pressureSwitch;
+  public boolean startValue; // Start button on the Logitech Gamepad
+  public boolean bValue; // B button on the Logitech Gamepad
+  public boolean xValue; // X button on the Logitech Gamepad
+  public boolean thumbValue;
+  public boolean innerLValue;
+  public boolean outerLValue;
+  public boolean stopValue;
+  public boolean hatchButton;
+  public boolean firstSensor;
+  public boolean secondSensor;
+  public boolean sensorGroup1;
+  public boolean sensorGroup2;
+  public boolean ballSwitch;
+  public boolean hatchSwitch;
+  public boolean elevatorOneSwitch;
+  public boolean elevatorTwoSwitch;
+  public boolean elevatorThreeSwitch;
   public boolean gripperPressed;
-  public boolean aPressed;
   public boolean thumbPressed;
   public boolean triggerPressed;
   public boolean innerLPressed;
   public boolean outerLPressed;
-  public boolean outerRPressed;
   public boolean stopPressed;
-  public boolean HatchValue;
   public boolean firstLevel;
   public boolean secondLevel;
   public boolean thirdLevel;
-  public boolean elevUp;
-  public boolean newAdamSwitch;
-  public boolean elevDown;
-  public boolean HatchPressed;
+  public boolean secondUp;
+  public boolean secondDown;
+  public boolean finalHatchSwitch;
+  public boolean hatchValueOne;
+  public boolean hatchValueTwo;
+
   public Compressor c;
-  public DifferentialDrive m_myRobot; // Combines both motor groups to allow driving via joystick
+
+  public DifferentialDrive robotDrive; // Combines both motor groups to allow driving via joystick
+
   public DigitalInput digi0; // Digital Input - 0
   public DigitalInput digi1; // Digital Input - 1
   public DigitalInput digi2; // Digital Input - 2
@@ -65,40 +60,51 @@ public class Robot extends TimedRobot {
   public DigitalInput digi7; // Digital Input - 7
   public DigitalInput digi8; // Digital Input - 8
   public DigitalInput digi9; // Digital Input - 9
-  public double gety; // Pull Y axis value of drive gamepad's joystick
-  public double getx; // Pull X axis value of drive gamepad's joystick
-  public double left_trig; // Pull the left trigger's axis value
-  public double right_trig; // Pull the right trigger's axis value
-  public double ScanValue;
-  public double SliderValue;
-  public DoubleSolenoid Gripper; // Solenoid that controls the gripper pneumatic
-  public DoubleSolenoid Fingers; // Solenoid that controls the gripper's fingers pneumatic
-  public DoubleSolenoid Intake; // Solenoid that controls the intake arm pneumatic
-  public Joystick Lstick; // Logitech Gamepad
-  public Joystick Xstick; // Logitech Extreme
-  public Preferences prefs;
-  public SpeedControllerGroup left_side; // Combines both motors on the left side of the robot into one group
-  public SpeedControllerGroup right_side; // Combines both motors on the right side of the robot into one group
-  public SpeedControllerGroup BallIntake; // Combines both ball intake motors into a group
-  public String FingerString;
-  public Value finger;
-  public WPI_VictorSPX FirstBallIntake; // First ball intake motor
-  public WPI_VictorSPX SecondBallIntake; // Second ball intake motor
-  public WPI_VictorSPX BallLauncher; // Ball Launcher motor
-  public WPI_TalonSRX Drive1; // First drivetrain motor
-  public WPI_TalonSRX Drive2; // Second drivetrain motor
-  public WPI_TalonSRX Drive3; // Third drivetrain motor
-  public WPI_TalonSRX Drive4; // Fourth drivetrain motor
-  public WPI_TalonSRX elevTalonSRX; // Elevator
-  public boolean oldvalue;
+
+  public final double DEPLOY_SPEED = 0.5;
+  public final double DRIVE_DEADBAND = 0.025;
+  public double getY; // Pull Y axis value of drive gamepad's joystick
+  public double getX; // Pull X axis value of drive gamepad's joystick
+  public double leftTrig; // Pull the left trigger's axis value
+  public double rightTrig; // Pull the right trigger's axis value
+  public final double SCAN_ASSIST = 0.1;
+  public final double SCAN_SPEED = 0.55;
+  public double scanValue;
+  public double sliderValue;
+  public double remapX;
+  public double remapY;
+
+  public DoubleSolenoid gripper; // Solenoid that controls the gripper pneumatic
+  public DoubleSolenoid fingers; // Solenoid that controls the gripper's fingers pneumatic
+  public Solenoid intake; // Solenoid that controls the intake arm
+
+  public Joystick lStick; // Logitech Gamepad
+  public Joystick xStick; // Logitech Extreme
+
+  public SpeedControllerGroup leftSide; // Combines both motors on the left side of the robot into one group
+  public SpeedControllerGroup rightSide; // Combines both motors on the right side of the robot into one group
+  public SpeedControllerGroup elevDrive;
+  public SpeedControllerGroup ballIntake; // Combines both ball intake motors into a group
+
+  public String fingerString; // Allow driver to know finger status
+
+  public Value finger; // Allow driver to know finger status
+
+  public WPI_TalonSRX drive1; // First drivetrain motor
+  public WPI_TalonSRX drive2; // Second drivetrain motor
+  public WPI_TalonSRX drive3; // Third drivetrain motor
+  public WPI_TalonSRX drive4; // Fourth drivetrain motor
+  public WPI_TalonSRX elevTalonSRX; // Elevator motor
+
+  public WPI_VictorSPX firstBallIntake; // First ball intake motor
+  public WPI_VictorSPX secondBallIntake; // Second ball intake motor
+  public WPI_VictorSPX ballLauncher; // Ball Launcher motor
 
   @Override
   public void robotInit() {
-    newAdamSwitch = false;
-    HatchValue = false;
-    oldvalue = false;
-
-    prefs = Preferences.getInstance();
+    finalHatchSwitch = false;
+    hatchValueOne = false;
+    hatchValueTwo = false;
 
     c = new Compressor(0);
     // Creates compressor object
@@ -115,308 +121,343 @@ public class Robot extends TimedRobot {
     digi9 = new DigitalInput(9); // DIO 9
     // Defines the digital inputs (for sensors/switches)
 
-    Lstick = new Joystick(0); // Logitech Gamepad
-    Xstick = new Joystick(1); // Logitech Xtreme Joystick
+    lStick = new Joystick(0); // Logitech Gamepad
+    xStick = new Joystick(1); // Logitech Xtreme Joystick
     // Declares controllers
 
-    Drive1 = new WPI_TalonSRX(1);
-    Drive2 = new WPI_TalonSRX(2);
-    Drive3 = new WPI_TalonSRX(3);
-    Drive4 = new WPI_TalonSRX(4);
-    // New drive Talons
+    drive1 = new WPI_TalonSRX(1);
+    drive2 = new WPI_TalonSRX(2);
+    drive3 = new WPI_TalonSRX(3);
+    drive4 = new WPI_TalonSRX(4);
 
     elevTalonSRX = new WPI_TalonSRX(5);
-    BallLauncher = new WPI_VictorSPX(6);
-    FirstBallIntake = new WPI_VictorSPX(7);
-    SecondBallIntake = new WPI_VictorSPX(8);
-    BallIntake = new SpeedControllerGroup(FirstBallIntake, SecondBallIntake);
-    // Victor 7 & 8 -> Intake motors, create a SpeedControllerGroup for them
+    ballLauncher = new WPI_VictorSPX(6);
+    firstBallIntake = new WPI_VictorSPX(7);
+    secondBallIntake = new WPI_VictorSPX(8);
+    ballIntake = new SpeedControllerGroup(firstBallIntake, secondBallIntake);
+    // Victor 7 & 8 -> intake motors, create a SpeedControllerGroup for them
 
-    left_side = new SpeedControllerGroup(Drive1, Drive3);
-    right_side = new SpeedControllerGroup(Drive2, Drive4);
-    m_myRobot = new DifferentialDrive(left_side, right_side);
+    leftSide = new SpeedControllerGroup(drive1, drive3);
+    rightSide = new SpeedControllerGroup(drive2, drive4);
+    robotDrive = new DifferentialDrive(leftSide, rightSide);
+    elevDrive = new SpeedControllerGroup(leftSide, rightSide);
     // Control which motors control which sides of the robot in terms of movement
     // Assign both of these sides to differential drive method
 
-    c.setClosedLoopControl(false);
+    gripper = new DoubleSolenoid(0, 2, 3);
+    fingers = new DoubleSolenoid(0, 4, 5);
+    intake = new Solenoid(0, 7);
 
-    Gripper = new DoubleSolenoid(1, 2, 3);
-    Fingers = new DoubleSolenoid(1, 4, 5);
-    Intake = new DoubleSolenoid(0, 6, 7);
-
-    if (!prefs.containsKey("Scan Speed Hatch")) {
-      prefs.putDouble("Scan Speed Hatch", 0.0);
-    }
+    elevTalonSRX.configContinuousCurrentLimit(60);
   }
 
   @Override
   public void teleopPeriodic() {
 
-    if (HatchSwitch && !oldvalue) {
-      newAdamSwitch = true;
-      oldvalue = true;
+    if (hatchSwitch && !hatchValueTwo) {
+      finalHatchSwitch = true;
+      hatchValueTwo = true;
+    } else if (!hatchSwitch && hatchValueTwo) {
+      hatchValueTwo = false;
     }
-    if (!HatchSwitch && oldvalue) {
-      oldvalue = false;
+    // Confirm that this makes sense with Adam
+
+    // if (!hatchSwitch && hatchValueTwo) {
+    // hatchValueTwo = false;
+    // }
+
+    getX = lStick.getX();
+    getY = lStick.getY();
+    remapX = lStick.getX();
+    remapY = lStick.getY();
+
+    if (getX > -DRIVE_DEADBAND && getX < DRIVE_DEADBAND) {
+      getX = 0;
     }
 
-    gety = Lstick.getY();
-    getx = Lstick.getX();
-
-    finger = Fingers.get();
-
-    if (getx > -0.1 && getx < 0.1) {
-      getx = 0;
-    }
-
-    if (gety > -0.1 && gety < 0.1) {
-      gety = 0;
+    if (getY > -DRIVE_DEADBAND && getY < DRIVE_DEADBAND) {
+      getY = 0;
     }
     // Accounts for axis inaccuracy for movement (deadband)
 
-    left_trig = Lstick.getRawAxis(2);
-    right_trig = Lstick.getRawAxis(3);
+    leftTrig = lStick.getRawAxis(2);
+    rightTrig = lStick.getRawAxis(3);
     // Define the left and right triggers
 
-    if (ScanValue != 1 || ScanValue != -1) {
-      if (getx != 0 || gety != 0) {
-        m_myRobot.arcadeDrive(Lstick.getY() * -1, Lstick.getX());
-      } else if (left_trig != 0 || right_trig != 0) {
-        m_myRobot.tankDrive(left_trig / 2, right_trig / 2);
+    // if (!elevatorOneSwitch || elevatorTwoSwitch || elevatorThreeSwitch) {
+    // robotDrive.arcadeDrive(lStick.getY() / -3, lStick.getX() / 3);
+    // } else if (elevatorOneSwitch || (!elevatorTwoSwitch && !elevatorThreeSwitch))
+    // {
+
+    // // if (getX != 0 || getY != 0) {
+    // // robotDrive.arcadeDrive(lStick.getY() / -1.05, lStick.getX() / 1.05);
+    // // } else if (leftTrig != 0 || rightTrig != 0) {
+    // // robotDrive.tankDrive(leftTrig / 2, rightTrig / 2);
+    // // }
+    // }
+    // } else if (!elevatorOneSwitch && !elevatorTwoSwitch && !elevatorThreeSwitch)
+    // {
+    // robotDrive.arcadeDrive(lStick.getY() / -3, lStick.getX() / 3);
+    // } else {
+    // System.out.println("NOT MOVING ROBOT FOR SAFETY REASONS?");
+    // }
+    // // Controls the robot's movement
+
+    if (scanValue != 1 || scanValue != -1) {
+      if (lStick.getX() > 0 && lStick.getX() < 0.8) {
+        remapX = remapX * 0.8 + 0.2;
+      } else if (lStick.getX() > 0.8) {
+        remapX = remapX * 0.8 + 0.2;
+      } else if (lStick.getX() < 0 && lStick.getX() > -0.8) {
+        remapX = remapX * 0.8 - 0.2;
+      } else if (lStick.getX() < -0.8) {
+        remapX = remapX * 0.8 - 0.2;
       } else {
 
       }
+
+      if (lStick.getY() > 0 && lStick.getY() < 0.8) {
+        remapY = remapY * 0.375 + 0.25;
+      } else if (lStick.getY() > 0.8) {
+        remapY = remapY * 2.25 - 1.25;
+      } else if (lStick.getY() < 0 && lStick.getY() > -0.8) {
+        remapY = remapY * 0.375 - 0.25;
+      } else if (lStick.getY() < -0.8) {
+        remapY = remapY * 2.25 + 1.25;
+      } else {
+
+      }
+
+      robotDrive.arcadeDrive(-remapY, remapX);
     }
-    // Controls the robot's movement
-    // Currently commented to prevent the robot from randomly moving
 
-    FirstSensor = digi0.get();
-    SecondSensor = digi1.get();
-    SensorGroup1 = digi2.get();
-    SensorGroup2 = digi4.get();
-    ElevatorOneSwitch = digi5.get();
-    BallSwitch = digi6.get();
-    HatchSwitch = digi7.get();
-    ElevatorTwoSwitch = digi8.get();
-    ElevatorThreeSwitch = digi9.get();
+    if (leftTrig != 0 || rightTrig != 0) {
+      robotDrive.tankDrive(leftTrig / 2, rightTrig / 2);
+    }
 
-    AValue = Lstick.getRawButtonPressed(1);
-    BValue = Lstick.getRawButton(2);
-    XValue = Lstick.getRawButton(3);
+    firstSensor = digi0.get();
+    secondSensor = digi1.get();
+    sensorGroup1 = digi2.get(); // Sensors 3 & 4 grouped into one DIO
+    sensorGroup2 = digi4.get(); // Sensors 5 & 6 grouped into one DIO
+    elevatorOneSwitch = digi5.get();
+    ballSwitch = digi6.get();
+    hatchSwitch = digi7.get();
+    elevatorTwoSwitch = digi8.get();
+    elevatorThreeSwitch = digi9.get();
+    // Switches and sensors
+
+    startValue = lStick.getRawButton(8);
+    bValue = lStick.getRawButton(2);
+    xValue = lStick.getRawButton(3);
     // Assigning the handheld Logitech controller's buttons (B & X)
 
-    // TriggerValue = Xstick.getRawButtonPressed(1);
-    triggerPressed = Xstick.getRawButton(1);
-    ThumbValue = Xstick.getRawButtonPressed(2);
-    InnerLValue = Xstick.getRawButtonPressed(3);
-    HatchButton = Xstick.getRawButton(4);
-    OuterLValue = Xstick.getRawButtonPressed(5);
-    OuterRValue = Xstick.getRawButtonPressed(6);
-    ScanValue = Xstick.getRawAxis(2);
-    SliderValue = Xstick.getRawAxis(3);
-    firstLevel = Xstick.getRawButton(11);
-    secondLevel = Xstick.getRawButton(9);
-    elevUp = Xstick.getRawButton(8);
-    elevDown = Xstick.getRawButton(12);
-    thirdLevel = Xstick.getRawButton(7);
-    StopValue = Xstick.getRawButtonPressed(10);
+    triggerPressed = xStick.getRawButton(1);
+    thumbValue = xStick.getRawButtonPressed(2);
+    innerLValue = xStick.getRawButtonPressed(3);
+    hatchButton = xStick.getRawButton(4);
+    outerLValue = xStick.getRawButtonPressed(5);
+    scanValue = xStick.getRawAxis(2);
+    sliderValue = xStick.getRawAxis(3);
+    firstLevel = xStick.getRawButton(11);
+    secondLevel = xStick.getRawButton(9);
+    secondUp = xStick.getRawButton(8);
+    secondDown = xStick.getRawButton(12);
+    thirdLevel = xStick.getRawButton(7);
+    stopValue = xStick.getRawButtonPressed(10);
     // Assigning variables to the Xtreme joystick's buttons and axes
-    // Eventually switch elevator controls to toggles with RawButtonPressed
 
-    if (ScanValue == 1 && !HatchButton) {
-      if (FirstSensor && SecondSensor) {
-        m_myRobot.arcadeDrive(0.5, 0);
+    if (scanValue == 1 && !hatchButton) {
+      if (firstSensor && secondSensor) {
+        robotDrive.arcadeDrive(DEPLOY_SPEED, 0);
       } else {
-        m_myRobot.arcadeDrive(0.1, 0.55);
+        robotDrive.arcadeDrive(SCAN_ASSIST, SCAN_SPEED);
+        // robotDrive.tankDrive(SCAN_SPEED, 0);
       }
       // Scan routine RIGHT, based on the standing controller's Z axis value
-    } else if (ScanValue == -1 && !HatchButton) {
-      if (FirstSensor && SecondSensor) {
-        m_myRobot.arcadeDrive(0.5, 0);
+    } else if (scanValue == -1 && !hatchButton) {
+      if (firstSensor && secondSensor) {
+        robotDrive.arcadeDrive(DEPLOY_SPEED, 0);
       } else {
-        m_myRobot.arcadeDrive(0.1, -0.55);
+        robotDrive.arcadeDrive(SCAN_ASSIST, -SCAN_SPEED);
+        // robotDrive.tankDrive(0, SCAN_SPEED);
       }
       // Scan routine LEFT, based on the standing controller's Z axis value
-    } else if (ScanValue == 1 && HatchButton) {
-      if (SensorGroup1 && SensorGroup2) {
-        m_myRobot.arcadeDrive(0.5, 0);
+    } else if (scanValue == 1 && hatchButton) {
+      if (sensorGroup1 && sensorGroup2) {
+        robotDrive.arcadeDrive(DEPLOY_SPEED, 0);
       } else {
-        m_myRobot.arcadeDrive(0.1, 0.55);
+        robotDrive.arcadeDrive(SCAN_ASSIST, SCAN_SPEED);
+        // robotDrive.tankDrive(SCAN_SPEED, 0);
       }
-    } else if (ScanValue == -1 && HatchButton) {
-      if (SensorGroup1 && SensorGroup2) {
-        m_myRobot.arcadeDrive(0.5, 0);
+    } else if (scanValue == -1 && hatchButton) {
+      if (sensorGroup1 && sensorGroup2) {
+        robotDrive.arcadeDrive(DEPLOY_SPEED, 0);
       } else {
-        m_myRobot.arcadeDrive(0.1, -0.55);
+        robotDrive.arcadeDrive(SCAN_ASSIST, -SCAN_SPEED);
+        // robotDrive.tankDrive(0, SCAN_SPEED);
       }
-    } else {
-
     }
 
-    if (StopValue && stopPressed) {
+    if (stopValue && stopPressed) {
       stopPressed = false;
-    } else if (StopValue && !stopPressed) {
+    } else if (stopValue && !stopPressed) {
       stopPressed = true;
     }
 
     if (firstLevel) {
       System.out.println("Running elevator to 1");
-      if (!ElevatorOneSwitch) {
+      if (!elevatorOneSwitch) {
         elevTalonSRX.set(1);
       } else {
         elevTalonSRX.stopMotor();
       }
-    } else if (secondLevel && elevUp) {
+    } else if (secondLevel && secondUp) {
       System.out.println("Running elevator from 1 to 2");
-      if (!ElevatorTwoSwitch) {
+      if (!elevatorTwoSwitch) {
         elevTalonSRX.set(-1);
       } else {
         elevTalonSRX.stopMotor();
       }
-    } else if (secondLevel && elevDown) {
+    } else if (secondLevel && secondDown) {
       System.out.println("Running elevator from 3 to 2");
-      if (!ElevatorTwoSwitch) {
+      if (!elevatorTwoSwitch) {
         elevTalonSRX.set(1);
       } else {
         elevTalonSRX.stopMotor();
       }
     } else if (thirdLevel) {
       System.out.println("Running elevator to 3");
-      if (!ElevatorThreeSwitch) {
+      if (!elevatorThreeSwitch) {
         elevTalonSRX.set(-1);
       } else {
         elevTalonSRX.stopMotor();
       }
-    } else if (StopValue) {
+    } else if (stopPressed) {
       elevTalonSRX.stopMotor();
-      // Stop the elevator in the case of an error to avoid damage
     } else {
       elevTalonSRX.set(0);
     }
 
-    if (XValue && !BallSwitch) {
-      BallIntake.set(0.8);
-      BallLauncher.set(0.3);
-    } else if (XValue && BallSwitch) {
-      BallIntake.stopMotor();
-      BallLauncher.stopMotor();
-    } else if (BValue) {
-      BallLauncher.set(1);
-    } else if (!XValue && !BallSwitch) {
-      BallLauncher.set(0);
-      BallIntake.set(0);
+    if (xValue && !ballSwitch) {
+      ballIntake.set(0.8);
+      ballLauncher.set(-0.3);
+    } else if (xValue && ballSwitch && !bValue) {
+      ballIntake.stopMotor();
+      ballLauncher.stopMotor();
+    } else if (ballSwitch && !bValue && !xValue) {
+      ballIntake.stopMotor();
+      ballLauncher.stopMotor();
+    } else if (!xValue && !ballSwitch) {
+      ballLauncher.set(0);
+      ballIntake.set(0);
+    } else if (startValue) {
+      System.out.println("Entering cargo ship mode");
+      gripper.set(Value.kForward);
+      ballLauncher.set(-1);
+    } else if (!startValue) {
+      gripper.set(Value.kReverse);
+      ballLauncher.stopMotor();
     }
-    // Controls for picking up and launching Ball
 
-    if (SliderValue != 1) {
-      if (AValue && aPressed) {
-        aPressed = false;
-      } else if (AValue && !aPressed) {
-        aPressed = true;
-      }
+    if (bValue) {
+      ballLauncher.set(-1);
+    } else if (!bValue && !xValue) {
+      ballLauncher.set(0);
+    }
+    // Controls for picking up and launching Balls
 
-      if (ThumbValue && thumbPressed) {
+    if (sliderValue != 1) {
+      if (thumbValue && thumbPressed) {
         thumbPressed = false;
-      } else if (ThumbValue && !thumbPressed) {
+      } else if (thumbValue && !thumbPressed) {
         thumbPressed = true;
       }
 
-      if (ThumbValue && thumbPressed) {
-        thumbPressed = false;
-      } else if (ThumbValue && !thumbPressed) {
-        thumbPressed = true;
-      }
-
-      if (OuterLValue && outerLPressed) {
+      if (outerLValue && outerLPressed) {
         outerLPressed = false;
-      } else if (OuterLValue && !outerLPressed) {
+      } else if (outerLValue && !outerLPressed) {
         outerLPressed = true;
-      }
-      if (OuterRValue && outerRPressed) {
-        outerRPressed = false;
-      } else if (OuterRValue && !outerRPressed) {
-        outerRPressed = true;
       }
       // Allow toggles for Xtreme stick's controls
 
       if (triggerPressed) {
-        Gripper.set(Value.kReverse);
-        // Engage the Gripper pneumatic
+        gripper.set(Value.kReverse);
+        // Engage the gripper pneumatic
       } else {
-        Gripper.set(Value.kForward);
+        gripper.set(Value.kForward);
       }
-      // Set to hold instead of toggle to avoid accidental damage
-
-      if (newAdamSwitch) {
-        System.out.println("ADAMSWITCH");
-        newAdamSwitch = false;
-        HatchValue = true;
-        if (HatchValue) {
-          if (Fingers.get() == Value.kForward) {
-            Fingers.set(Value.kReverse);
-            System.out.println("RUNNING FINGERS IN");
-            Timer.delay(0.25);
-            HatchValue = false;
-          } else {
-            Fingers.set(Value.kForward);
-            System.out.println("RUNNING FINGERS OUT");
-            Timer.delay(0.25);
-            HatchValue = false;
-          }
-        }
-      }
-      // HatchValue -> false by default; set back to false should prevent the loop
 
       if (thumbPressed) {
-        Intake.set(Value.kForward);
-        // Engage the Ball Intake pneumatic
+        intake.set(true);
+        // Engage the ball intake pneumatic
       } else {
-        Intake.set(Value.kReverse);
+        intake.set(false);
       }
 
       if (outerLPressed) {
-        if (Fingers.get() == Value.kForward) {
-          Fingers.set(Value.kReverse);
+        if (fingers.get() == Value.kForward) {
+          fingers.set(Value.kReverse);
         } else {
-          Fingers.set(Value.kForward);
+          fingers.set(Value.kForward);
         }
         outerLPressed = false;
       }
 
-      // if (outerRPressed) {
-      // Fingers.set(Value.kReverse);
-      // }
+      if (finalHatchSwitch) {
+        finalHatchSwitch = false;
+        hatchValueOne = true;
+        if (hatchValueOne) {
+          if (fingers.get() == Value.kForward) {
+            fingers.set(Value.kReverse);
+            System.out.println("RUNNING FINGERS IN");
+            // Timer.delay(0.25);
+            hatchValueOne = false;
+            // Engage the fingers pneumatic
+          } else {
+            fingers.set(Value.kForward);
+            System.out.println("RUNNING FINGERS OUT");
+            // Timer.delay(0.25);
+            hatchValueOne = false;
+            // Engage the fingers pneumatic
+          }
+        }
+      }
+      // hatchValueOne -> false by default; revert to false prevents the loop
 
     } else {
-      Gripper.set(Value.kOff);
-      Intake.set(Value.kOff);
-      Fingers.set(Value.kOff);
+      gripper.set(Value.kOff);
+      intake.set(false);
+      fingers.set(Value.kOff);
       // Turns off all solenoids if the standing joystick's slider is set to off
     }
 
+    finger = fingers.get();
+
     if (finger == Value.kForward) {
-      FingerString = "Fingers out";
+      fingerString = "D E P L O Y E D";
     } else {
-      FingerString = "Fingers in";
+      fingerString = "R E T R A C T E D";
     }
 
     SmartDashboard.putBoolean("Sensor1: ", digi0.get());
     SmartDashboard.putBoolean("Sensor2: ", digi1.get());
-    SmartDashboard.putBoolean("SensorGroup1 : ", SensorGroup1);
-    SmartDashboard.putBoolean("SensorGroup2 : ", SensorGroup2);
+    SmartDashboard.putBoolean("sensorGroup1 : ", sensorGroup1);
+    SmartDashboard.putBoolean("sensorGroup2 : ", sensorGroup2);
     SmartDashboard.putBoolean("Elevator Stop: ", stopPressed);
     SmartDashboard.putBoolean("Ball Switch: ", digi6.get());
     SmartDashboard.putBoolean("Hatch Switch: ", digi7.get());
-    SmartDashboard.putBoolean("Elevator Switch 1: ", ElevatorOneSwitch);
-    SmartDashboard.putBoolean("Elevator Switch 2: ", ElevatorTwoSwitch);
-    SmartDashboard.putBoolean("Elevator Switch 3: ", ElevatorThreeSwitch);
-    SmartDashboard.putString("Fingers: ", FingerString);
+    SmartDashboard.putBoolean("Elevator Switch 1: ", elevatorOneSwitch);
+    SmartDashboard.putBoolean("Elevator Switch 2: ", elevatorTwoSwitch);
+    SmartDashboard.putBoolean("Elevator Switch 3: ", elevatorThreeSwitch);
+    SmartDashboard.putString("fingers: ", fingerString);
+
+    System.out.println("X: " + lStick.getX());
+    System.out.println("Y: " + lStick.getY());
   }
 
   @Override
   public void autonomousPeriodic() {
     teleopPeriodic();
-    // Do we need to add RobotInit?
   }
 
 }
